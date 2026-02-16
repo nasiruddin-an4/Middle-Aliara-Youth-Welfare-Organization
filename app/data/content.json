@@ -1,0 +1,479 @@
+{
+  "bn": {
+    "navbar": {
+      "logo": {
+        "text": "মধ্য আলীয়ারা যুব কল্যাণ সংগঠন",
+        "subtext": "ও প্রবাসী ঐক্য পরিষদ"
+      },
+      "links": [
+        { "label": "হোম", "href": "/", "icon": "home" },
+        { "label": "আমাদের সম্পর্কে", "href": "/about", "icon": "info" },
+        { "label": "সদস্যবৃন্দ", "href": "/members", "icon": "users" },
+        { "label": "হিসাব রক্ষণ", "href": "/accounts", "icon": "file-text" },
+        { "label": "গ্যালারি", "href": "/gallery", "icon": "image" },
+        { "label": "ব্লগ", "href": "/blog", "icon": "newspaper" }
+      ],
+      "donate": "দান করুন"
+    },
+    "hero": {
+      "tag": "মধ্য আলীয়ারা যুব ও প্রবাসী নেটওয়ার্ক",
+      "title": {
+        "prefix": "ঐক্যে শক্তি,",
+        "suffix": "লক্ষ্যে অবিচল"
+      },
+      "description": "মধ্য আলীয়ারা যুব কল্যাণ সংগঠন ও প্রবাসী ঐক্য পরিষদ-এ আপনাকে স্বাগতম। আমরা ঐক্য, সামাজিক উন্নয়ন এবং মাদকমুক্ত সমাজ গঠনে প্রতিশ্রুতিবদ্ধ।",
+      "buttons": {
+        "primary": {
+          "text": "সদস্যদের দেখুন",
+          "href": "/members",
+          "icon": "users"
+        },
+        "secondary": {
+          "text": "স্বচ্ছতা যাচাই করুন",
+          "href": "/transparency",
+          "icon": "arrow-right"
+        }
+      }
+    },
+    "pledge": {
+      "tag": "আমাদের অঙ্গীকার",
+      "title": "মধ্য আলীয়ারা যুব ও প্রবাসীদের একতা",
+      "description": "কচুয়া উপজেলার মধ্য আলীয়ারা গ্রামের যুবসমাজ ও প্রবাসীদের সম্মিলিত শক্তিতে একটি সমৃদ্ধ এলাকা গড়াই আমাদের মূল লক্ষ্য।",
+      "features": [
+        "মাদকমুক্ত সমাজ গঠন ও যুবকদের উন্নয়ন",
+        "গ্রামের প্রতিটি কোণে সৌর বিদ্যুতের ব্যবস্থা",
+        "অসহায়দের গোপনে আর্থিক ও সামাজিক সহায়তা",
+        "রিয়েল-টাইম আর্থিক স্বচ্ছতা ও জবাবদিহিতা"
+      ]
+    },
+    "ongoing": {
+      "title": "চলমান কার্যক্রমসমূহ",
+      "description": "আমাদের বর্তমান সামাজিক ও উন্নয়নমূলক কার্যক্রমের এক ঝলক।",
+      "view_all_text": "কার্যক্রমসমূহ",
+      "card_button_text": "বিস্তারিত দেখুন",
+      "activities": [
+        {
+          "title": "শীতবস্ত্র বিতরণ ২০২৪",
+          "category": "নিয়মিত কার্যক্রম",
+          "description": "গ্রামের অসহায় ও দুস্থদের মাঝে ৫০০ পিস কম্বল এবং শীতবস্ত্র বিতরণ করা হয়েছে।",
+          "date": "জানুয়ারি ১৫, ২০২৪",
+          "image": "winter-cloths"
+        },
+        {
+          "title": "বৃক্ষরোপণ কর্মসূচি",
+          "category": "পরিবেশ রক্ষা",
+          "description": "পরিবেশ রক্ষায় গ্রামের রাস্তার দুপাশে ১০০০টি ফলজ ও বনজ বৃক্ষ রোপণ করা হচ্ছে।",
+          "date": "ফেব্রুয়ারি ১০, ২০২৪",
+          "image": "tree-plantation"
+        },
+        {
+          "title": "রমজান ফুড ড্রাইভ",
+          "category": "খাদ্য সহায়তা",
+          "description": "পবিত্র রমজান উপলক্ষে ২০০টি পরিবারের মাঝে ১ মাসের খাদ্য সামগ্রী বিতরণ।",
+          "date": "মার্চ ০১, ২০২৪",
+          "image": "food-drive"
+        },
+        {
+          "title": "মসজিদ সংস্কার কাজ",
+          "category": "ধর্মীয় অবকাঠামো",
+          "description": "কেন্দ্রীয় জামে মসজিদের অজু খানা এবং টাইলস স্থাপনের কাজ চলমান রয়েছে।",
+          "date": "চলমান",
+          "image": "mosque"
+        },
+        {
+          "title": "শিক্ষাবৃত্তি প্রদান",
+          "category": "শিক্ষা সহায়তা",
+          "description": "দরিদ্র ও মেধাবী শিক্ষার্থীদের জন্য বাৎসরিক শিক্ষাবৃত্তি ও শিক্ষা উপকরণ প্রদান।",
+          "date": "চলমান",
+          "image": "education"
+        }
+      ]
+    },
+    "gallery": {
+      "title": "ফটো গ্যালারি",
+      "view_all_text": "সব দেখুন"
+    },
+    "community": {
+      "title": "Our Community",
+      "cards": [
+        {
+          "title": "মানবসেবা",
+          "description": "অসহায় এবং গরিবদের জন্য একটি শক্তিশালী সাহায্যকারী হাত হিসেবে কাজ করা।",
+          "icon": "hand-heart"
+        },
+        {
+          "title": "উন্নয়নমূলক মিশন",
+          "description": "গ্রামের অবকাঠামোগত উন্নয়ন এবং সৌর বিদ্যুতের মাধ্যমে আধুনিকায়ন নিশ্চিত করা।",
+          "icon": "zap"
+        },
+        {
+          "title": "মাদকমুক্ত অঙ্গীকার",
+          "description": "খেলাধুলা এবং সচেতনতার মাধ্যমে শিশুদের ও যুবকদের মাদক থেকে রক্ষা করা।",
+          "icon": "shield-check"
+        }
+      ]
+    },
+    "cta": {
+      "title": "আপনি কি আমাদের সামাজিক বিপ্লবে যোগ দিতে প্রস্তুত?",
+      "description": "মধ্য আলীয়ারা গ্রামের সকল প্রবাসী ও যুবকদের জন্য আমাদের ঐক্য পরিষদ সর্বদা উন্মুক্ত।",
+      "buttons": {
+        "primary": { "text": "কমিটির সাথে যোগাযোগ করুন", "href": "/contact" },
+        "secondary": { "text": "আমাদের লক্ষ্যসমূহ দেখুন", "href": "/goals" }
+      }
+    },
+    "footer": {
+      "organization": "মধ্য আলীয়ারা যুব কল্যাণ সংগঠন",
+      "copyright": "সর্বস্বত্ব সংরক্ষিত",
+      "description": "এই প্রতিষ্ঠান মানবতার শিক্ষক, মানুষের মুক্তি ও শান্তির দূত, মানবসেবার আদর্শ, মহানবী মুহাম্মদ সা.-এর পদাঙ্ক অনুসরণ করে আর্তমানবতার সেবায় একটি আদর্শ কল্যাণসমাজ বিনির্মাণে যথাসাধ্য প্রচেষ্টা চালিয়ে যাচ্ছে।",
+      "sections": [
+        {
+          "title": "মেনু",
+          "links": [
+            { "label": "আমাদের সম্পর্কে", "href": "/about" },
+            { "label": "কার্যক্রমসমূহ", "href": "/activities" },
+            { "label": "ব্লগ", "href": "/blog" },
+            { "label": "গ্যালারি", "href": "/gallery" }
+          ]
+        },
+        {
+          "title": "যুক্ত হোন",
+          "links": [
+            { "label": "নিয়মিত দাতা", "href": "/donate-regular" },
+            { "label": "সদস্য", "href": "/members" },
+            { "label": "আজীবন ও দাতা সদস্য", "href": "/life-members" },
+            { "label": "স্বেচ্ছাসেবক", "href": "/volunteer" },
+            { "label": "ক্যারিয়ার", "href": "/career" }
+          ]
+        },
+        {
+          "title": "অন্যান্য",
+          "links": [
+            { "label": "যোগাযোগ", "href": "/contact" },
+            { "label": "পরিষেবার শর্তাবলী", "href": "/terms" },
+            { "label": "গোপনীয়তা নীতি", "href": "/privacy" }
+          ]
+        }
+      ]
+    },
+    "about_page": {
+      "hero_section": {
+        "title_badge": "আমাদের লক্ষ্য ও ভিশন",
+        "title": "আমরা এক উন্নত ও আদর্শ গ্রামের স্বপ্ন দেখি",
+        "description": "আমরা এমন একটি সমাজ গড়ার স্বপ্ন দেখি যেখানে মাদক, দারিদ্র্য এবং সামাজিক বৈষম্যের কোনো স্থান নেই। আমাদের প্রতিটি পদক্ষেপে থাকে স্বচ্ছতা এবং নিঃস্বার্থ সেবা।",
+        "buttons": {
+          "primary": { "text": "সম্পূর্ণ স্বচ্ছতা", "icon": "shield-check" },
+          "secondary": { "text": "নিঃস্বার্থ সেবা", "icon": "users" }
+        },
+        "pledge_card": {
+          "title": "আমাদের অঙ্গীকার",
+          "items": [
+            { "text": "মাদকমুক্ত সুশৃঙ্খল সমাজ গঠন", "icon": "shield" },
+            { "text": "এলাকার প্রতিটি কোণে আধুনিকায়ন", "icon": "sun" },
+            {
+              "text": "অসহায়দের আত্মসম্মান বজায় রেখে সাহায্য",
+              "icon": "handshake"
+            }
+          ],
+          "active_members_text": "সক্রিয় সদস্য"
+        },
+        "floating_cards": [
+          {
+            "title": "মাদকমুক্ত সমাজ",
+            "description": "আমাদের এলাকাকে সম্পূর্ণরূপে মাদকমুক্ত করা এবং যুবসমাজকে ধ্বংসের হাত থেকে রক্ষা করা আমাদের প্রধান অগ্রাধিকার।",
+            "icon": "shield-check"
+          },
+          {
+            "title": "সৌর বিদ্যুতের আলো",
+            "description": "সন্ধ্যার পরপরই গুরুত্বপূর্ণ মোড়ে সৌর বিদ্যুতের খুঁটি বসিয়ে এলাকাকে আরও নিরাপদ ও আলোকিত করা।",
+            "icon": "sun"
+          },
+          {
+            "title": "গোপন সহায়তা",
+            "description": "যারা আত্মসম্মানের ভয়ে কারো কাছে সাহায্য চায় না, তাদেরকে চিহ্নিত করে গোপনে যথাযথ সহায়তা নিশ্চিত করা।",
+            "icon": "hand-heart"
+          }
+        ]
+      },
+      "goals_section": {
+        "badge": "আমাদের টার্গেট",
+        "title": "যৌথ প্রচেষ্টায় যা অর্জন করতে চাই",
+        "description": "একটি শক্তিশালী গ্রাম মানে একটি ঐক্যবদ্ধ গ্রাম। আমাদের টার্গেটগুলো সাজানো হয়েছে সাধারণ মানুষের মৌলিক ও সামাজিক চাহিদা পূরণের জন্য।",
+        "cards": [
+          {
+            "title": "দরিদ্র কল্যাণ",
+            "description": "অসহায় ও গরিব-দুঃখীদের পাশে দাঁড়িয়ে তাদের জীবনযাত্রার মান উন্নয়নে সরাসরি ও নিয়মিত আর্থিক সহায়তা।",
+            "icon": "heart-handshake"
+          },
+          {
+            "title": "খেলাধুলা ও সুস্থ বিনোদন",
+            "description": "বাচ্চাদেরকে মাদক থেকে দূরে রাখতে এলাকাভিত্তিক বিভিন্ন টুর্নামেন্ট ও ক্রীড়া সামগ্রী প্রদান।",
+            "icon": "trophy"
+          },
+          {
+            "title": "উন্নয়নমূলক কাজ",
+            "description": "এলাকার রাস্তাঘাট মেরামত ও সামাজিক অবকাঠামোসহ সার্বিক সামাজিক উন্নয়নমূলক কাজে সক্রিয় অংশ গ্রহণ।",
+            "icon": "construction"
+          },
+          {
+            "title": "সামাজিক সাহায্য",
+            "description": "যেকোনো সামাজিক সংকট, প্রাকৃতিক দুর্যোগ বা জরুরি প্রয়োজনে তাৎক্ষণিক ফান্ডিং ও স্বেচ্ছাসেবক নিয়োগ।",
+            "icon": "users"
+          },
+          {
+            "title": "যুব উন্নয়ন",
+            "description": "যুবকদের কারিগরি দক্ষতা বৃদ্ধি ও সঠিক পথে পরিচালিত করতে নিয়মিত সেমিনার ও সচেতনতামূলক কার্যক্রম।",
+            "icon": "check-circle"
+          },
+          {
+            "title": "ঐক্যবদ্ধ প্রবাস",
+            "description": "মধ্য আলীয়ারার সকল প্রবাসীদের একই প্ল্যাটফর্মে এনে আমাদের সম্মিলিত শক্তি ও প্রভাব বৃদ্ধি করা।",
+            "icon": "globe"
+          }
+        ]
+      }
+    }
+  },
+  "en": {
+    "navbar": {
+      "logo": {
+        "text": "Middle Aliara Youth Welfare Organization",
+        "subtext": "& Expatriate Unity Council"
+      },
+      "links": [
+        { "label": "Home", "href": "/", "icon": "home" },
+        { "label": "About Us", "href": "/about", "icon": "info" },
+        { "label": "Members", "href": "/members", "icon": "users" },
+        { "label": "Accounts", "href": "/accounts", "icon": "file-text" },
+        { "label": "Gallery", "href": "/gallery", "icon": "image" },
+        { "label": "Blog", "href": "/blog", "icon": "newspaper" }
+      ],
+      "donate": "Donate"
+    },
+    "hero": {
+      "tag": "Middle Aliara Youth & Expatriate Network",
+      "title": {
+        "prefix": "Strength in Unity,",
+        "suffix": "Steadfast in Goals"
+      },
+      "description": "Welcome to Middle Aliara Youth Welfare Organization & Expatriate Unity Council. We are committed to unity, social development, and building a drug-free society.",
+      "buttons": {
+        "primary": {
+          "text": "View Members",
+          "href": "/members",
+          "icon": "users"
+        },
+        "secondary": {
+          "text": "Check Transparency",
+          "href": "/transparency",
+          "icon": "arrow-right"
+        }
+      }
+    },
+    "pledge": {
+      "tag": "Our Pledge",
+      "title": "Unity of Middle Aliara Youth and Expatriates",
+      "description": "Our main goal is to build a prosperous area with the combined power of the youth and expatriates of Middle Aliara village of Kachua Upazila.",
+      "features": [
+        "Building a drug-free society and youth development",
+        "Solar power system in every corner of the village",
+        "Secret financial and social assistance to the helpless",
+        "Real-time financial transparency and accountability"
+      ]
+    },
+    "ongoing": {
+      "title": "Ongoing Activities",
+      "description": "A glimpse of our current social and developmental activities.",
+      "view_all_text": "All Activities",
+      "card_button_text": "View Details",
+      "activities": [
+        {
+          "title": "Winter Clothes Distribution 2024",
+          "category": "Regular Activities",
+          "description": "Distributed 500 blankets and winter clothes among the helpless and distressed of the village.",
+          "date": "January 15, 2024",
+          "image": "winter-cloths"
+        },
+        {
+          "title": "Tree Plantation Program",
+          "category": "Environmental Protection",
+          "description": "Planting 1000 fruit and forest trees on both sides of the village road to protect the environment.",
+          "date": "February 10, 2024",
+          "image": "tree-plantation"
+        },
+        {
+          "title": "Ramadan Food Drive",
+          "category": "Food Assistance",
+          "description": "Distributing 1 month's food supplies to 200 families on the occasion of Holy Ramadan.",
+          "date": "March 01, 2024",
+          "image": "food-drive"
+        },
+        {
+          "title": "Mosque Renovation",
+          "category": "Religious Infrastructure",
+          "description": "Renovation work of the ablution area and tiling of the Central Jame Mosque is ongoing.",
+          "date": "Ongoing",
+          "image": "mosque"
+        },
+        {
+          "title": "Education Scholarship",
+          "category": "Education Support",
+          "description": "Providing annual scholarships and educational materials for poor and meritorious students.",
+          "date": "Ongoing",
+          "image": "education"
+        }
+      ]
+    },
+    "gallery": {
+      "title": "Photo Gallery",
+      "view_all_text": "View All"
+    },
+    "community": {
+      "title": "Our Community",
+      "cards": [
+        {
+          "title": "Human Service",
+          "description": "Acting as a strong helping hand for the helpless and the poor.",
+          "icon": "hand-heart"
+        },
+        {
+          "title": "Developmental Mission",
+          "description": "Ensuring modernization through infrastructure development and solar electricity.",
+          "icon": "zap"
+        },
+        {
+          "title": "Drug-free Pledge",
+          "description": "Protecting children and youth from drugs through sports and awareness.",
+          "icon": "shield-check"
+        }
+      ]
+    },
+    "cta": {
+      "title": "Are you ready to join our social revolution?",
+      "description": "Our Unity Council is always open for all expatriates and youth of Middle Aliara Village.",
+      "buttons": {
+        "primary": { "text": "Contact the Committee", "href": "/contact" },
+        "secondary": { "text": "View our goals", "href": "/goals" }
+      }
+    },
+    "footer": {
+      "organization": "Middle Aliara Youth Welfare Organization",
+      "copyright": "All rights reserved",
+      "description": "This institution follows the footsteps of the Prophet Muhammad (PBUH), the teacher of humanity, the messenger of human liberation and peace, and the ideal of human service, to build an ideal welfare society in the service of suffering humanity.",
+      "sections": [
+        {
+          "title": "Menu",
+          "links": [
+            { "label": "About Us", "href": "/about" },
+            { "label": "Activities", "href": "/activities" },
+            { "label": "Blog", "href": "/blog" },
+            { "label": "Gallery", "href": "/gallery" }
+          ]
+        },
+        {
+          "title": "Get Involved",
+          "links": [
+            { "label": "Regular Donor", "href": "/donate-regular" },
+            { "label": "Member", "href": "/members" },
+            { "label": "Life & Donor Member", "href": "/life-members" },
+            { "label": "Volunteer", "href": "/volunteer" },
+            { "label": "Career", "href": "/career" }
+          ]
+        },
+        {
+          "title": "Others",
+          "links": [
+            { "label": "Contact", "href": "/contact" },
+            { "label": "Terms of Service", "href": "/terms" },
+            { "label": "Privacy Policy", "href": "/privacy" }
+          ]
+        }
+      ]
+    },
+    "about_page": {
+      "hero_section": {
+        "title_badge": "Our Goal & Vision",
+        "title": "We Dream of a Developed and Ideal Village",
+        "description": "We dream of building a society where there is no place for drugs, poverty, and social discrimination. Transparency and selfless service are in every step we take.",
+        "buttons": {
+          "primary": {
+            "text": "Complete Transparency",
+            "icon": "shield-check"
+          },
+          "secondary": { "text": "Selfless Service", "icon": "users" }
+        },
+        "pledge_card": {
+          "title": "Our Pledge",
+          "items": [
+            {
+              "text": "Building a drug-free disciplined society",
+              "icon": "shield"
+            },
+            {
+              "text": "Modernization in every corner of the area",
+              "icon": "sun"
+            },
+            {
+              "text": "Helping the helpless while maintaining their dignity",
+              "icon": "handshake"
+            }
+          ],
+          "active_members_text": "Active Members"
+        },
+        "floating_cards": [
+          {
+            "title": "Drug-Free Society",
+            "description": "Making our area completely drug-free and protecting the youth from destruction is our top priority.",
+            "icon": "shield-check"
+          },
+          {
+            "title": "Light of Solar Power",
+            "description": "Making the area safer and illuminated by bringing solar power poles to key intersections right after evening.",
+            "icon": "sun"
+          },
+          {
+            "title": "Confidential Assistance",
+            "description": "Identifying those who do not ask for help out of fear of dignity and ensuring appropriate assistance secretly.",
+            "icon": "hand-heart"
+          }
+        ]
+      },
+      "goals_section": {
+        "badge": "Our Target",
+        "title": "What We Want to Achieve Together",
+        "description": "A strong village means a united village. Our targets are arranged to meet the basic and social needs of ordinary people.",
+        "cards": [
+          {
+            "title": "Welfare of the Poor",
+            "description": "Standing by the helpless and poor to improve their standard of living through direct and regular financial assistance.",
+            "icon": "heart-handshake"
+          },
+          {
+            "title": "Sports & Healthy Entertainment",
+            "description": "Providing area-based tournaments and sports equipment to keep children away from drugs.",
+            "icon": "trophy"
+          },
+          {
+            "title": "Developmental Works",
+            "description": "Active participation in overall social development work including repair of village roads and social infrastructure.",
+            "icon": "construction"
+          },
+          {
+            "title": "Social Assistance",
+            "description": "Immediate funding and volunteer recruitment for any social crisis, natural disaster, or emergency need.",
+            "icon": "users"
+          },
+          {
+            "title": "Youth Development",
+            "description": "Regular seminars and awareness programs to increase technical skills of youth and guide them on the right path.",
+            "icon": "check-circle"
+          },
+          {
+            "title": "United Expatriates",
+            "description": "Bringing all expatriates of Middle Aliara under one platform to increase our collective strength and influence.",
+            "icon": "globe"
+          }
+        ]
+      }
+    }
+  }
+}

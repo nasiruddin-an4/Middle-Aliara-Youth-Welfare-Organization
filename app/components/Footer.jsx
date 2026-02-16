@@ -23,7 +23,7 @@ export default function Footer() {
       {/* Dark Overlay (optional, adjusted opacity) - Removed if image is the "shape" intended to show clearly */}
       {/* or keep it very subtle if needed. The user wants the shape to show, so let's rely on opacity of the image itself against the dark green bg */}
 
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-5">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-20 mb-16">
           {/* Column 1: Organization Info & Socials */}
           <div className="flex flex-col gap-6">

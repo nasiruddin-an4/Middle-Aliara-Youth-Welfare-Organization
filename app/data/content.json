@@ -230,6 +230,32 @@
             "icon": "globe"
           }
         ]
+      },
+      "work_process": {
+        "title": "আমাদের কার্যপ্রক্রিয়া",
+        "subtitle": "সম্পূর্ণ স্বচ্ছতা ও আধুনিক পদ্ধতির মাধ্যমে আমাদের প্রতিটি প্রজেক্ট পরিচালিত হয়।",
+        "steps": [
+          {
+            "id": "০১",
+            "title": "পরিকল্পনা",
+            "description": "সমাজের প্রকৃত সমস্যা চিহ্নিত করে সদস্যদের সাথে আলোচনার মাধ্যমে সমাধান নির্ধারণ।"
+          },
+          {
+            "id": "০২",
+            "title": "তহবিল সংগ্রহ",
+            "description": "স্বেচ্ছায় সদস্যদের অনুদানে একটি স্বচ্ছ কেন্দ্রীয় ডিজিটাল তহবিল গঠন।"
+          },
+          {
+            "id": "০৩",
+            "title": "বাস্তবায়ন",
+            "description": "নির্বাচিত সদস্যদের তত্ত্বাবধানে সরাসরি ফিল্ডে উন্নয়নমূলক প্রজেক্ট পরিচালনা।"
+          },
+          {
+            "id": "০৪",
+            "title": "পর্যালোচনা",
+            "description": "প্রতিটি কাজের ফলাফল এবং ব্যয়ের পুঙ্খানুপুঙ্খ রিপোর্ট সবার সামনে উপস্থাপন।"
+          }
+        ]
       }
     }
   },
@@ -471,6 +497,32 @@
             "title": "United Expatriates",
             "description": "Bringing all expatriates of Middle Aliara under one platform to increase our collective strength and influence.",
             "icon": "globe"
+          }
+        ]
+      },
+      "work_process": {
+        "title": "Our Work Process",
+        "subtitle": "Every project is managed with complete transparency and modern methods.",
+        "steps": [
+          {
+            "id": "01",
+            "title": "Planning",
+            "description": "Identifying the real problems of society and determining solutions through discussion with members."
+          },
+          {
+            "id": "02",
+            "title": "Fundraising",
+            "description": "Forming a transparent central digital fund through voluntary donations from members."
+          },
+          {
+            "id": "03",
+            "title": "Implementation",
+            "description": "Managing development projects directly in the field under the supervision of elected members."
+          },
+          {
+            "id": "04",
+            "title": "Review",
+            "description": "Presenting the results of each work and a meticulous report of expenditure to everyone."
           }
         ]
       }

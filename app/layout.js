@@ -1,7 +1,14 @@
+import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { LanguageProvider } from "./context/LanguageContext";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+});
 
 export const metadata = {
   title: "মধ্য আলীয়ারা যুব কল্যাণ সংগঠন ও প্রবাসী ঐক্য পরিষদ - Probashi Unity",
@@ -12,7 +19,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="bn">
-      <body className="antialiased">
+      <body
+        className={`${inter.variable} ${playfair.variable} antialiased font-sans`}
+      >
         <LanguageProvider>
           <Navbar />
           <main className="min-h-screen">{children}</main>

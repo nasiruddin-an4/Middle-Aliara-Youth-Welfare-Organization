@@ -8,7 +8,7 @@ export default function Footer() {
   const { organization, copyright, description, sections } = content.footer;
 
   return (
-    <footer className="relative bg-[#0b3321] text-white pt-42 pb-8 mt-auto overflow-hidden text-sm">
+    <footer className="relative bg-[#0b3321] text-white pt-42 pb-8 overflow-hidden text-sm">
       {/* Background Image / Shape */}
       <div
         className="absolute inset-0 z-0 opacity-80 pointer-events-none"

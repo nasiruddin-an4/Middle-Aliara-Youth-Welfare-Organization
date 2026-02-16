@@ -2,60 +2,60 @@
   "monthlyDue": 2000,
   "payments": [
     {
-      "memberId": "001",
-      "month": 1,
+      "memberId": "030",
+      "month": 2,
       "year": 2026,
-      "amount": 2000,
+      "amount": 1030,
       "source": "বিকাশ"
     },
     {
       "memberId": "001",
       "month": 2,
       "year": 2026,
-      "amount": 2000,
+      "amount": 1650,
       "source": "বিকাশ"
     },
     {
-      "memberId": "001",
-      "month": 3,
+      "memberId": "037",
+      "month": 2,
+      "year": 2026,
+      "amount": 1030,
+      "source": "বিকাশ"
+    },
+    {
+      "memberId": "017",
+      "month": 2,
       "year": 2026,
       "amount": 2000,
       "source": "বিকাশ"
     },
     {
       "memberId": "002",
-      "month": 1,
+      "month": 2,
       "year": 2026,
-      "amount": 2000,
+      "amount": 4500,
       "source": "বিকাশ"
     },
     {
-      "memberId": "003",
-      "month": 1,
+      "memberId": "021",
+      "month": 2,
       "year": 2026,
-      "amount": 2000,
-      "source": "বিকাশ"
-    },
-    {
-      "memberId": "004",
-      "month": 1,
-      "year": 2026,
-      "amount": 2000,
-      "source": "বিকাশ"
-    },
-    {
-      "memberId": "011",
-      "month": 1,
-      "year": 2026,
-      "amount": 2000,
+      "amount": 1030,
       "source": "বিকাশ"
     },
     {
       "memberId": "025",
       "month": 2,
       "year": 2026,
-      "amount": 2000,
-      "source": "নগদ"
+      "amount": 1030,
+      "source": "বিকাশ"
+    },
+    {
+      "memberId": "005",
+      "month": 2,
+      "year": 2026,
+      "amount": 1030,
+      "source": "বিকাশ"
     }
   ]
 }

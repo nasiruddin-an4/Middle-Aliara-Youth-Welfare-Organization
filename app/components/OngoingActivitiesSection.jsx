@@ -12,9 +12,23 @@ import Link from "next/link";
 
 export default function OngoingActivitiesSection() {
   const { content } = useLanguage();
-  const { title, activities, view_all_text, card_button_text } =
-    content.ongoing;
+  const { title, view_all_text, card_button_text } = content.ongoing;
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
   const scrollContainerRef = useRef(null);
+
+  useEffect(() => {
+    fetch("/api/activities")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          // Sort by date desc (if not already) and take latest 6
+          setActivities(data.data.slice(0, 6));
+        }
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  }, []);
 
   // Auto-play functionality with Scroll Snap
   useEffect(() => {
@@ -92,52 +106,82 @@ export default function OngoingActivitiesSection() {
             className="flex gap-6 overflow-x-auto pb-8 snap-x snap-mandatory hide-scrollbar"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
-            {activities.map((activity, index) => (
-              <div key={index} className="w-[387px] snap-start shrink-0">
-                <Link href={`/activities/${index}`} className="block h-full">
-                  <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col h-full group/card">
-                    {/* Image Area */}
-                    <div className="relative aspect-video bg-gray-200 overflow-hidden">
-                      <div className="absolute inset-0 flex items-center justify-center text-gray-400 bg-gray-100 group-hover/card:scale-105 transition-transform duration-500">
-                        {/* Valid image sources would go here. For now, placeholder. */}
-                        <ImageIcon size={48} className="opacity-40" />
-                      </div>
-                    </div>
-
-                    {/* Content Area */}
-                    <div className="p-6 flex flex-col flex-grow">
-                      {/* Category */}
-                      <div className="flex items-center gap-2 mb-3">
-                        <Send
-                          size={14}
-                          className="text-amber-500 rotate-[-45deg]"
-                        />
-                        <span className="text-amber-500 font-medium text-sm">
-                          {activity.category}
-                        </span>
-                      </div>
-
-                      {/* Title */}
-                      <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover/card:text-primary transition-colors line-clamp-2">
-                        {activity.title}
-                      </h3>
-
-                      {/* Description */}
-                      <p className="text-slate-600 text-sm leading-relaxed mb-6 line-clamp-3">
-                        {activity.description}
-                      </p>
-
-                      {/* Button */}
-                      <div className="mt-auto">
-                        <span className="block w-full text-center py-2.5 rounded-lg border border-primary/30 text-primary font-semibold group-hover/card:bg-primary group-hover/card:text-white transition-all duration-300 text-sm">
-                          {card_button_text}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
+            {loading ? (
+              <div className="w-full flex justify-center py-10">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
               </div>
-            ))}
+            ) : activities.length === 0 ? (
+              <div className="w-full text-center text-gray-400 py-10">
+                কোনো কার্যক্রম পাওয়া যায়নি
+              </div>
+            ) : (
+              activities.map((activity, index) => (
+                <div key={activity._id || index} className="w-[387px] snap-start shrink-0">
+                  <Link href={`/activities/${activity._id}`} className="block h-full">
+                    <div className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col h-full group/card">
+                      {/* Image Area */}
+                      <div className="relative aspect-video bg-gray-200 overflow-hidden">
+                        <div className="absolute inset-0 flex items-center justify-center text-gray-400 bg-gray-100 group-hover/card:scale-105 transition-transform duration-500">
+                          {activity.media && activity.media.length > 0 ? (
+                            activity.media[0].type === "video" ? (
+                              <video
+                                src={activity.media[0].url}
+                                className="w-full h-full object-cover"
+                                muted
+                                playsInline
+                              />
+                            ) : (
+                              <img
+                                src={activity.media[0].url}
+                                alt={activity.title}
+                                className="w-full h-full object-cover"
+                              />
+                            )
+                          ) : (
+                            <ImageIcon size={48} className="opacity-40" />
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Content Area */}
+                      <div className="p-6 flex flex-col flex-grow">
+                        {/* Category */}
+                        {activity.category && (
+                          <div className="flex items-center gap-2 mb-3">
+                            <Send
+                              size={14}
+                              className="text-amber-500 rotate-[-45deg]"
+                            />
+                            <span className="text-amber-500 font-medium text-sm">
+                              {activity.category}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Title */}
+                        <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover/card:text-primary transition-colors line-clamp-2">
+                          {activity.title}
+                        </h3>
+
+                        {/* Description */}
+                        {activity.description && (
+                          <p className="text-slate-600 text-sm leading-relaxed mb-6 line-clamp-3">
+                            {activity.description}
+                          </p>
+                        )}
+
+                        {/* Button */}
+                        <div className="mt-auto">
+                          <span className="block w-full text-center py-2.5 rounded-lg border border-primary/30 text-primary font-semibold group-hover/card:bg-primary group-hover/card:text-white transition-all duration-300 text-sm">
+                            {card_button_text}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+              ))
+            )}
           </div>
         </div>
 

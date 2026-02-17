@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { useLanguage } from "../context/LanguageContext";
+
 import {
   Activity,
   Calendar,
@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 export default function ActivitiesPage() {
-  const { content } = useLanguage();
+
   const [dbActivities, setDbActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -54,31 +54,12 @@ export default function ActivitiesPage() {
       .then((data) => {
         if (data.success) setDbActivities(data.data);
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   }, []);
 
   // Combine DB activities with static fallback from content.json
-  const allActivities = useMemo(() => {
-    // If we have DB data, use it
-    if (dbActivities.length > 0) return dbActivities;
-
-    // Fallback to static data from content.json
-    const staticActivities = content?.ongoing?.activities || [];
-    return staticActivities.map((a, i) => ({
-      _id: `static-${i}`,
-      title: a.title,
-      description: a.description,
-      category: a.category || "other",
-      date: a.date,
-      location: "",
-      status: "ongoing",
-      media: [],
-      featured: false,
-      isStatic: true,
-      staticIndex: i,
-    }));
-  }, [dbActivities, content]);
+  const allActivities = dbActivities;
 
   const filtered = useMemo(() => {
     return allActivities.filter((a) => {
@@ -102,7 +83,6 @@ export default function ActivitiesPage() {
   }, [search, filterStatus]);
 
   const getActivityLink = (activity) => {
-    if (activity.isStatic) return `/activities/${activity.staticIndex}`;
     return `/activities/${activity._id}`;
   };
 
@@ -153,11 +133,10 @@ export default function ActivitiesPage() {
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={() => setFilterStatus("all")}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer ${
-                  filterStatus === "all"
-                    ? "bg-[#051C14] text-white shadow-md"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer ${filterStatus === "all"
+                  ? "bg-[#051C14] text-white shadow-md"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
               >
                 সবগুলো
               </button>
@@ -165,11 +144,10 @@ export default function ActivitiesPage() {
                 <button
                   key={key}
                   onClick={() => setFilterStatus(key)}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer ${
-                    filterStatus === key
-                      ? "bg-[#051C14] text-white shadow-md"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
+                  className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer ${filterStatus === key
+                    ? "bg-[#051C14] text-white shadow-md"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
                 >
                   {label}
                 </button>
@@ -229,7 +207,7 @@ export default function ActivitiesPage() {
                         )}
                       </>
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-emerald-50 to-emerald-100 flex items-center justify-center">
+                      <div className="w-full h-full bg-linear-to-br from-emerald-50 to-emerald-100 flex items-center justify-center">
                         <ImageIcon
                           size={48}
                           className="text-emerald-300 opacity-50"
@@ -249,10 +227,9 @@ export default function ActivitiesPage() {
                     {/* Status badge */}
                     <div className="absolute top-3 right-3">
                       <span
-                        className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border ${
-                          statusColors[activity.status] ||
+                        className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border ${statusColors[activity.status] ||
                           "bg-gray-100 text-gray-600 border-gray-200"
-                        }`}
+                          }`}
                       >
                         {statusLabels[activity.status] || activity.status}
                       </span>
@@ -339,11 +316,10 @@ export default function ActivitiesPage() {
               <button
                 key={p}
                 onClick={() => setPage(p)}
-                className={`w-10 h-10 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
-                  page === p
-                    ? "bg-emerald-600 text-white shadow-md"
-                    : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
-                }`}
+                className={`w-10 h-10 rounded-xl text-sm font-semibold transition-all cursor-pointer ${page === p
+                  ? "bg-emerald-600 text-white shadow-md"
+                  : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+                  }`}
               >
                 {p}
               </button>

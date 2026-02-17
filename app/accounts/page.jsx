@@ -2,8 +2,8 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import membersData from "../data/members.json";
-import accountsData from "../data/accounts.json";
+// import membersData from "../data/members.json";
+// import accountsData from "../data/accounts.json";
 import {
   Search,
   Shield,
@@ -87,10 +87,9 @@ const SOURCE_STYLES = {
   },
 };
 const AVAILABLE_YEARS = [2026];
-const MONTHLY_DUE = accountsData.monthlyDue || 2000;
-
-const allMembers = membersData.members;
-const allPayments = accountsData.payments;
+const MONTHLY_DUE = 2000;
+// const allMembers = membersData.members;
+// const allPayments = accountsData.payments;
 
 const fmt = (n) => "৳" + n.toLocaleString("bn-BD");
 const avatarColor = (name) => {
@@ -110,9 +109,11 @@ const avatarColor = (name) => {
 };
 
 /* ═══ Member Detail Modal (Desktop only) ═══ */
-function MemberModal({ member, onClose }) {
+function MemberModal({ member, onClose, allPayments }) {
   if (!member) return null;
-  const memberPayments = allPayments.filter((p) => p.memberId === member.id);
+  const memberPayments = allPayments.filter(
+    (p) => p.memberId == member.memberId || p.memberId == member.id,
+  );
   const totalPaid = memberPayments.reduce((s, p) => s + p.amount, 0);
   const paidMonths = memberPayments.length;
   const totalDue = MONTH_NAMES.length * MONTHLY_DUE - totalPaid;
@@ -639,7 +640,7 @@ function PaymentDetailModal({ member, monthName, year, onClose }) {
                     URL.revokeObjectURL(url);
                   }, "image/png");
                 }}
-                className="w-full cursor-pointer flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#051C14] text-white text-sm font-semibold hover:bg-[#0a3d2a] transition-all duration-200 shadow-md hover:shadow-lg"
+                className="w-full cursor-pointer flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-green-700 text-white text-sm font-semibold hover:bg-green-900 transition-all duration-300 hover:shadow-lg"
               >
                 <Download size={16} />
                 রশিদ ডাউনলোড করুন (PNG)
@@ -708,6 +709,52 @@ export default function AccountsPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [showAllMembers, setShowAllMembers] = useState(false);
 
+  const [members, setMembers] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [mRes, pRes] = await Promise.all([
+          fetch("/api/members", {
+            cache: "no-store",
+            headers: { "Cache-Control": "no-cache" },
+          }),
+          fetch("/api/payments", {
+            cache: "no-store",
+            headers: { "Cache-Control": "no-cache" },
+          }),
+        ]);
+        const mData = await mRes.json();
+        const pData = await pRes.json();
+        if (mData.success) setMembers(mData.data || []);
+        if (pData.success) setPayments(pData.data || []);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  const allMembers = members;
+  const allPayments = payments;
+
+  const availableYears = useMemo(() => {
+    const years = new Set(payments.map((p) => p.year));
+    if (years.size === 0) return [2026]; // Default if no data
+    return Array.from(years).sort((a, b) => b - a);
+  }, [payments]);
+
+  // If selectedYear not in availableYears, switch to latest?
+  useEffect(() => {
+    if (availableYears.length > 0 && !availableYears.includes(selectedYear)) {
+      setSelectedYear(availableYears[0]);
+    }
+  }, [availableYears, selectedYear]);
+
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
@@ -731,30 +778,32 @@ export default function AccountsPage() {
         };
       });
     return map;
-  }, [selectedYear]);
+  }, [selectedYear, allPayments]);
 
   const totalFund = useMemo(
     () => allPayments.reduce((s, p) => s + p.amount, 0),
-    [],
+    [allPayments],
   );
   const yearTotal = useMemo(
     () =>
       allPayments
         .filter((p) => p.year === selectedYear)
         .reduce((s, p) => s + p.amount, 0),
-    [selectedYear],
+    [selectedYear, allPayments],
   );
   const monthTotal = useMemo(
     () =>
       allPayments
         .filter((p) => p.year === selectedYear && p.month === selectedMonth)
         .reduce((s, p) => s + p.amount, 0),
-    [selectedYear, selectedMonth],
+    [selectedYear, selectedMonth, allPayments],
   );
 
   const paidMembersThisMonth = useMemo(
-    () => allMembers.filter((m) => paymentMap[m.id]?.[selectedMonth]).length,
-    [paymentMap, selectedMonth],
+    () =>
+      allMembers.filter((m) => paymentMap[m.memberId || m.id]?.[selectedMonth])
+        .length,
+    [paymentMap, selectedMonth, allMembers],
   );
   const unpaidMembersThisMonth = allMembers.length - paidMembersThisMonth;
   const collectionRate = Math.round(
@@ -767,48 +816,51 @@ export default function AccountsPage() {
       map[p.memberId] = (map[p.memberId] || 0) + p.amount;
     });
     return map;
-  }, []);
+  }, [allPayments]);
 
   const topContributors = useMemo(() => {
     return [...allMembers]
-      .map((m) => ({ ...m, total: memberTotals[m.id] || 0 }))
+      .map((m) => ({ ...m, total: memberTotals[m.memberId || m.id] || 0 }))
       .sort((a, b) => b.total - a.total)
       .slice(0, 5);
-  }, [memberTotals]);
+  }, [memberTotals, allMembers]);
 
   const countryStats = useMemo(() => {
     const map = {};
     allMembers.forEach((m) => {
       if (!map[m.country]) map[m.country] = { count: 0, total: 0 };
       map[m.country].count++;
-      map[m.country].total += memberTotals[m.id] || 0;
+      map[m.country].total += memberTotals[m.memberId || m.id] || 0;
     });
     return Object.entries(map).sort((a, b) => b[1].total - a[1].total);
-  }, [memberTotals]);
+  }, [memberTotals, allMembers]);
 
   const filteredMembers = useMemo(() => {
     let list = allMembers.filter((member) => {
+      const memId = member.memberId || member.id;
       const q = searchTerm.toLowerCase();
       const matchSearch =
         !searchTerm ||
         member.name.toLowerCase().includes(q) ||
         member.country.toLowerCase().includes(q) ||
-        member.id.includes(searchTerm);
+        (memId && memId.toString().toLowerCase().includes(q));
       const matchSource =
         selectedSource === "সব" ||
-        Object.values(paymentMap[member.id] || {}).some(
+        Object.values(paymentMap[memId] || {}).some(
           (p) => p.source === selectedSource,
         );
       return matchSearch && matchSource;
     });
     if (sortBy === "total")
       list = [...list].sort(
-        (a, b) => (memberTotals[b.id] || 0) - (memberTotals[a.id] || 0),
+        (a, b) =>
+          (memberTotals[b.memberId || b.id] || 0) -
+          (memberTotals[a.memberId || a.id] || 0),
       );
     else if (sortBy === "status")
       list = [...list].sort((a, b) => {
-        const aP = paymentMap[a.id]?.[selectedMonth] ? 1 : 0;
-        const bP = paymentMap[b.id]?.[selectedMonth] ? 1 : 0;
+        const aP = paymentMap[a.memberId || a.id]?.[selectedMonth] ? 1 : 0;
+        const bP = paymentMap[b.memberId || b.id]?.[selectedMonth] ? 1 : 0;
         return bP - aP;
       });
     return list;
@@ -819,11 +871,12 @@ export default function AccountsPage() {
     sortBy,
     selectedMonth,
     memberTotals,
+    allMembers,
   ]);
 
   const monthContributions = useMemo(() => {
     const contributions = allMembers.map((member) => {
-      const p = paymentMap[member.id]?.[selectedMonth];
+      const p = paymentMap[member.memberId || member.id]?.[selectedMonth];
       return {
         ...member,
         amount: p ? p.amount : 0,
@@ -839,12 +892,13 @@ export default function AccountsPage() {
       return bPaid - aPaid;
     });
     return contributions;
-  }, [paymentMap, selectedMonth]);
+  }, [paymentMap, selectedMonth, allMembers]);
 
   const handleMemberClick = useCallback(
     (member) => {
       if (isMobile) {
-        router.push(`/accounts/${member.id}`);
+        // Prefer database _id for routing, or fallback to memberId if _id is missing
+        router.push(`/accounts/${member._id || member.id || member.memberId}`);
       } else {
         setSelectedMember(member);
       }
@@ -863,6 +917,7 @@ export default function AccountsPage() {
         <MemberModal
           member={selectedMember}
           onClose={() => setSelectedMember(null)}
+          allPayments={allPayments}
         />
       )}
       {/* Payment Detail Modal */}
@@ -970,7 +1025,7 @@ export default function AccountsPage() {
                 onChange={(e) => setSelectedYear(Number(e.target.value))}
                 className="appearance-none bg-white border border-gray-200 rounded-xl pl-4 pr-9 py-2.5 text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all cursor-pointer shadow-sm"
               >
-                {AVAILABLE_YEARS.map((y) => (
+                {availableYears.map((y) => (
                   <option key={y} value={y}>
                     {y}
                   </option>
@@ -1050,7 +1105,7 @@ export default function AccountsPage() {
               const paid = item.amount > 0;
               return (
                 <div
-                  key={item.id}
+                  key={item._id || item.id || index}
                   className={`bg-white rounded-2xl border p-3.5 md:p-4 transition-all duration-300 group hover:shadow-lg ${
                     paid ? "border-emerald-100" : "border-gray-100"
                   }`}
@@ -1206,7 +1261,7 @@ export default function AccountsPage() {
 
               return (
                 <div
-                  key={member.id}
+                  key={member._id || member.id}
                   className="bg-white rounded-2xl border border-gray-100 p-3.5 md:p-4 hover:shadow-lg transition-all duration-300 group"
                 >
                   {/* Avatar + Status */}

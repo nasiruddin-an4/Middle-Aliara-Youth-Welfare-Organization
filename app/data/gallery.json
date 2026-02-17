@@ -1,0 +1,66 @@
+{
+  "categories": [
+    { "id": "all", "label": "সবগুলো" },
+    { "id": "events", "label": "ইভেন্ট" },
+    { "id": "welfare", "label": "কল্যাণমূলক" },
+    { "id": "education", "label": "শিক্ষা" },
+    { "id": "environment", "label": "পরিবেশ" },
+    { "id": "celebrations", "label": "উৎসব" }
+  ],
+  "photos": [
+    {
+      "id": 1,
+      "src": "/images/gallery/community_gathering.png",
+      "title": "সাধারণ সভা ২০২৬",
+      "description": "সংগঠনের বার্ষিক সাধারণ সভায় সকল সদস্যদের অংশগ্রহণ",
+      "category": "events",
+      "date": "2026-01-15",
+      "featured": true
+    },
+    {
+      "id": 2,
+      "src": "/images/gallery/food_distribution.png",
+      "title": "খাদ্য বিতরণ কর্মসূচী",
+      "description": "দরিদ্র পরিবারদের মাঝে খাদ্যসামগ্রী বিতরণ",
+      "category": "welfare",
+      "date": "2025-12-20",
+      "featured": true
+    },
+    {
+      "id": 3,
+      "src": "/images/gallery/winter_clothing.png",
+      "title": "শীতবস্ত্র বিতরণ",
+      "description": "গ্রামের হতদরিদ্রদের মাঝে শীতবস্ত্র ও কম্বল বিতরণ",
+      "category": "welfare",
+      "date": "2026-01-05",
+      "featured": false
+    },
+    {
+      "id": 4,
+      "src": "/images/gallery/tree_planting.png",
+      "title": "বৃক্ষরোপণ কর্মসূচি",
+      "description": "পরিবেশ উন্নয়নে স্বেচ্ছাসেবকদের বৃক্ষরোপণ কার্যক্রম",
+      "category": "environment",
+      "date": "2025-07-10",
+      "featured": true
+    },
+    {
+      "id": 5,
+      "src": "/images/gallery/education_program.png",
+      "title": "শিক্ষা কার্যক্রম",
+      "description": "গ্রামের শিশুদের জন্য বিনামূল্যে পাঠদান কার্যক্রম",
+      "category": "education",
+      "date": "2025-09-15",
+      "featured": false
+    },
+    {
+      "id": 6,
+      "src": "/images/gallery/eid_celebration.png",
+      "title": "ঈদ পুনর্মিলনী",
+      "description": "সংগঠনের সদস্যদের ঈদ পুনর্মিলনী ও সাংস্কৃতিক অনুষ্ঠান",
+      "category": "celebrations",
+      "date": "2025-04-22",
+      "featured": true
+    }
+  ]
+}

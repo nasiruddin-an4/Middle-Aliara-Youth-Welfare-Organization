@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import membersData from "../data/members.json";
+import React, { useState, useMemo, useEffect } from "react";
+// import membersData from "../data/members.json"; // REMOVED
 import {
   Search,
   Globe,
@@ -9,13 +9,10 @@ import {
   Phone,
   Mail,
   Users,
-  MailCheck,
   Facebook,
   Shield,
-  Crown,
 } from "lucide-react";
-
-const members = membersData.members;
+import Image from "next/image";
 
 // Committee role order for sorting
 const ROLE_ORDER = [
@@ -28,26 +25,38 @@ const ROLE_ORDER = [
   "তথ্য ও প্রচার সম্পাদক",
 ];
 
-const ROLE_COLORS = {
-  সভাপতি: "from-amber-400 to-yellow-600",
-  "সহ-সভাপতি": "from-sky-400 to-blue-600",
-  "সাধারণ সম্পাদক": "from-emerald-400 to-green-600",
-  "যুগ্ম সম্পাদক": "from-violet-400 to-purple-600",
-  কোষাধ্যক্ষ: "from-rose-400 to-pink-600",
-  "সাংগঠনিক সম্পাদক": "from-cyan-400 to-teal-600",
-  "তথ্য ও প্রচার সম্পাদক": "from-indigo-400 to-blue-600",
-};
-
 export default function MembersPage() {
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("All");
   const [activeTab, setActiveTab] = useState("all"); // "all" or "committee"
+
+  useEffect(() => {
+    async function fetchMembers() {
+      try {
+        const res = await fetch("/api/members", {
+          cache: "no-store",
+          headers: { "Cache-Control": "no-cache" },
+        });
+        const data = await res.json();
+        if (data.success && data.data) {
+          setMembers(data.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch members:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchMembers();
+  }, []);
 
   // Get unique countries for filter dropdown
   const countries = useMemo(() => {
     const uniqueCountries = [...new Set(members.map((m) => m.country))];
     return ["All", ...uniqueCountries.sort()];
-  }, []);
+  }, [members]);
 
   // Committee members
   const committeeMembers = useMemo(() => {
@@ -58,7 +67,7 @@ export default function MembersPage() {
         const bIdx = ROLE_ORDER.indexOf(b.role);
         return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx);
       });
-  }, []);
+  }, [members]);
 
   // Filter logic
   const filteredMembers = useMemo(() => {
@@ -66,19 +75,21 @@ export default function MembersPage() {
     return baseList.filter((member) => {
       const matchesSearch =
         member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        member.mobile.includes(searchTerm) ||
-        member.id.includes(searchTerm) ||
-        member.country.toLowerCase().includes(searchTerm.toLowerCase());
+        (member.mobile && member.mobile.includes(searchTerm)) ||
+        (member.memberId && member.memberId.includes(searchTerm)) ||
+        (member.country &&
+          member.country.toLowerCase().includes(searchTerm.toLowerCase()));
 
       const matchesCountry =
         selectedCountry === "All" || member.country === selectedCountry;
 
       return matchesSearch && matchesCountry;
     });
-  }, [searchTerm, selectedCountry, activeTab, committeeMembers]);
+  }, [searchTerm, selectedCountry, activeTab, committeeMembers, members]);
 
   // Generate avatar background color based on member name
   const getAvatarGradient = (name) => {
+    if (!name) return "from-gray-400 to-gray-500";
     const gradients = [
       "from-sky-400 to-blue-500",
       "from-emerald-400 to-teal-500",
@@ -97,6 +108,14 @@ export default function MembersPage() {
     }
     return gradients[Math.abs(hash) % gradients.length];
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#f8fafb]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-20 font-sans bg-[#f8fafb]">
@@ -235,7 +254,7 @@ export default function MembersPage() {
           >
             {filteredMembers.map((member) => (
               <div
-                key={member.id}
+                key={member._id}
                 className={`group bg-white rounded-2xl overflow-hidden border hover:shadow-xl hover:-translate-y-1 transition-all duration-400 ease-out ${
                   member.role && activeTab === "committee"
                     ? "border-emerald-100"
@@ -247,10 +266,12 @@ export default function MembersPage() {
                   {member.image ? (
                     <>
                       {/* Try real image */}
-                      <img
+                      <Image
                         src={member.image}
                         alt={member.name}
-                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                        className="object-cover group-hover:scale-[1.03] transition-transform duration-500"
                         onError={(e) => {
                           // Hide img and show fallback
                           e.target.style.display = "none";

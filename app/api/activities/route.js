@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Activity from "@/lib/models/Activity";
-import { isAuthenticated } from "@/lib/auth";
+import { isAuthenticated, hasPermission, ROLES } from "@/lib/auth";
 
 // GET — public list of activities
 export async function GET() {
@@ -19,9 +19,13 @@ export async function GET() {
 
 // POST — admin only, create activity
 export async function POST(request) {
-  const auth = isAuthenticated(request);
+  /* 22 */ const auth = isAuthenticated(request);
   if (!auth) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!hasPermission(auth, ROLES.SUPER_ADMIN)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Member from "@/lib/models/Member";
-import { isAuthenticated } from "@/lib/auth";
+import { isAuthenticated, hasPermission, ROLES } from "@/lib/auth";
 
 export async function GET(request) {
   try {
@@ -17,6 +17,10 @@ export async function POST(request) {
   const user = isAuthenticated(request);
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!hasPermission(user, ROLES.MEMBER_ADMIN)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {

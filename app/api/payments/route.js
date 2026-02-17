@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Payment from "@/lib/models/Payment";
 import Member from "@/lib/models/Member";
-import { isAuthenticated } from "@/lib/auth";
+import { isAuthenticated, hasPermission, ROLES } from "@/lib/auth";
 import { sendReceiptEmail } from "@/lib/emailService";
 
 export async function GET(request) {
@@ -31,9 +31,13 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const user = isAuthenticated(request);
+  /* 34 */ const user = isAuthenticated(request);
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!hasPermission(user, ROLES.PAYMENT_ADMIN)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Activity from "@/lib/models/Activity";
-import { isAuthenticated } from "@/lib/auth";
+import { isAuthenticated, hasPermission, ROLES } from "@/lib/auth";
 
 // GET — single activity
 export async function GET(request, { params }) {
@@ -28,6 +28,10 @@ export async function PUT(request, { params }) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  if (!hasPermission(auth, ROLES.SUPER_ADMIN)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   try {
     await connectDB();
     const { id } = await params;
@@ -50,6 +54,10 @@ export async function DELETE(request, { params }) {
   const auth = isAuthenticated(request);
   if (!auth) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!hasPermission(auth, ROLES.SUPER_ADMIN)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {

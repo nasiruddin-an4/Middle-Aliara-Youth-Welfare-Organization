@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Payment from "@/lib/models/Payment";
-import { isAuthenticated } from "@/lib/auth";
+import { isAuthenticated, hasPermission, ROLES } from "@/lib/auth";
 
 export async function PUT(request, { params }) {
-  const user = isAuthenticated(request);
+  /* 7 */ const user = isAuthenticated(request);
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!hasPermission(user, ROLES.PAYMENT_ADMIN)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {
@@ -30,9 +34,13 @@ export async function PUT(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
-  const user = isAuthenticated(request);
+  /* 33 */ const user = isAuthenticated(request);
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!hasPermission(user, ROLES.PAYMENT_ADMIN)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {

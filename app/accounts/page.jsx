@@ -208,20 +208,20 @@ function MemberModal({ member, onClose, allPayments }) {
             {(member.father ||
               (member.social?.email &&
                 !member.social.email.includes("@example.com"))) && (
-              <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
-                {member.father && (
-                  <span className="text-[10px] text-emerald-300/60">
-                    পিতা: {member.father}
-                  </span>
-                )}
-                {member.social?.email &&
-                  !member.social.email.includes("@example.com") && (
-                    <span className="text-[10px] text-emerald-300/50 truncate max-w-[200px]">
-                      ✉️ {member.social.email}
+                <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+                  {member.father && (
+                    <span className="text-[10px] text-emerald-300/60">
+                      পিতা: {member.father}
                     </span>
                   )}
-              </div>
-            )}
+                  {member.social?.email &&
+                    !member.social.email.includes("@example.com") && (
+                      <span className="text-[10px] text-emerald-300/50 truncate max-w-[200px]">
+                        ✉️ {member.social.email}
+                      </span>
+                    )}
+                </div>
+              )}
           </div>
         </div>
 
@@ -300,11 +300,10 @@ function MemberModal({ member, onClose, allPayments }) {
                       return (
                         <div
                           key={i}
-                          className={`rounded-xl p-2 text-center border transition-all duration-200 hover:scale-[1.03] ${
-                            paid
+                          className={`rounded-xl p-2 text-center border transition-all duration-200 hover:scale-[1.03] ${paid
                               ? "bg-gradient-to-b from-emerald-50 to-green-50 border-emerald-200 shadow-sm"
                               : "bg-gray-50/50 border-gray-100"
-                          }`}
+                            }`}
                         >
                           <p
                             className={`text-[10px] font-semibold mb-1 ${paid ? "text-emerald-600" : "text-gray-400"}`}
@@ -699,6 +698,39 @@ function SectionHeader({
 /* ═══ Main Page ═══ */
 export default function AccountsPage() {
   const router = useRouter();
+
+  // Access Control State
+  const [access, setAccess] = useState(null);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  useEffect(() => {
+    fetch("/api/auth/account-access")
+      .then((res) => res.json())
+      .then((data) => setAccess(data.accessed))
+      .catch(() => setAccess(false));
+  }, []);
+
+  const handleUnlock = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch("/api/auth/account-access", {
+        method: "POST",
+        body: JSON.stringify({ password: passwordInput }),
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      if (data.success || data.accessed) { // success from POST or accessed from cookie
+        setAccess(true);
+        setErrorMsg("");
+      } else {
+        setErrorMsg("ভুল পাসওয়ার্ড");
+      }
+    } catch (err) {
+      setErrorMsg("সার্ভার ত্রুটি");
+    }
+  };
+
   const [selectedYear, setSelectedYear] = useState(2026);
   const [selectedMonth, setSelectedMonth] = useState(2);
   const [searchTerm, setSearchTerm] = useState("");
@@ -910,6 +942,61 @@ export default function AccountsPage() {
     ? filteredMembers
     : filteredMembers.slice(0, 12);
 
+  if (access === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 text-emerald-600 font-bold animate-pulse">
+        যাচাই করা হচ্ছে...
+      </div>
+    );
+  }
+
+  if (access === false) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center border border-gray-100">
+          <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Shield size={32} className="text-emerald-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">সুরক্ষিত পাতা</h2>
+          <p className="text-sm text-gray-500 mb-6">
+            অ্যাকাউন্টস পেজটি দেখতে দয়া করে পাসওয়ার্ড দিন।
+          </p>
+
+          <form onSubmit={handleUnlock} className="space-y-4">
+            <div>
+              <input
+                type="password"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                placeholder="পাসওয়ার্ড লিখুন"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all font-mono text-center text-lg tracking-widest"
+                autoFocus
+              />
+            </div>
+
+            {errorMsg && (
+              <p className="text-sm text-red-500 font-medium bg-red-50 py-2 rounded-lg">
+                {errorMsg}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2"
+            >
+              <CheckCircle2 size={18} />
+              প্রবেশ করুন
+            </button>
+          </form>
+
+          <p className="text-xs text-gray-400 mt-6 md:mt-8">
+            শুধুমাত্র অনুমোদিত সদস্যদের জন্য।
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen pb-20 bg-[#f8fafb]">
       {/* Member Detail Modal (Desktop only) */}
@@ -1106,9 +1193,8 @@ export default function AccountsPage() {
               return (
                 <div
                   key={item._id || item.id || index}
-                  className={`bg-white rounded-2xl border p-3.5 md:p-4 transition-all duration-300 group hover:shadow-lg ${
-                    paid ? "border-emerald-100" : "border-gray-100"
-                  }`}
+                  className={`bg-white rounded-2xl border p-3.5 md:p-4 transition-all duration-300 group hover:shadow-lg ${paid ? "border-emerald-100" : "border-gray-100"
+                    }`}
                 >
                   {/* Serial + Avatar + Status */}
                   <div className="flex items-center justify-between mb-3">
@@ -1136,11 +1222,10 @@ export default function AccountsPage() {
                       </div>
                     </div>
                     <span
-                      className={`inline-flex items-center gap-1 text-[9px] md:text-[12px] font-bold px-2 py-0.5 rounded-lg ${
-                        paid
+                      className={`inline-flex items-center gap-1 text-[9px] md:text-[12px] font-bold px-2 py-0.5 rounded-lg ${paid
                           ? "bg-emerald-50 text-emerald-600"
                           : "bg-red-50 text-red-400"
-                      }`}
+                        }`}
                     >
                       {paid ? "✓" : "✗"} {paid ? "পরিশোধিত" : "বকেয়া"}
                     </span>

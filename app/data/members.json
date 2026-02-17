@@ -5,11 +5,12 @@
       "name": "মোঃ রুবেল",
       "mobile": "9660571268609",
       "country": "সৌদি আরব",
-      "image": "/images/members/001.jpg",
+      "role": "সভাপতি",
+      "image": "/members/rubel.jpg",
       "social": {
         "facebook": "https://facebook.com/member001",
         "whatsapp": "https://wa.me/9660571268609",
-        "email": "member001@example.com"
+        "email": "rubel@gmail.com"
       }
     },
     {
@@ -17,6 +18,7 @@
       "name": "মোঃ মেহেদী হাসান",
       "mobile": "96894456500",
       "country": "ওমান",
+      "role": "সহ-সভাপতি",
       "image": "/images/members/002.jpg",
       "social": {
         "facebook": "https://facebook.com/member002",
@@ -29,6 +31,7 @@
       "name": "মোঃ মহিসন আহমেদ",
       "mobile": "971589402195",
       "country": "সংযুক্ত আরব আমিরাত (দুবাই)",
+      "role": "সাধারণ সম্পাদক",
       "image": "/images/members/003.jpg",
       "social": {
         "facebook": "https://facebook.com/member003",
@@ -41,6 +44,7 @@
       "name": "মোঃ মিজান মিয়া",
       "mobile": "966592694659",
       "country": "সৌদি আরব",
+      "role": "যুগ্ম সম্পাদক",
       "image": "/images/members/004.jpg",
       "social": {
         "facebook": "https://facebook.com/member004",
@@ -53,6 +57,7 @@
       "name": "মোঃ মিরাজ হোসেন",
       "mobile": "9660539860822",
       "country": "সৌদি আরব",
+      "role": "কোষাধ্যক্ষ",
       "image": "/images/members/005.jpg",
       "social": {
         "facebook": "https://facebook.com/member005",
@@ -209,6 +214,7 @@
       "name": "মোঃ রায়হান ইবনে নাসিম",
       "mobile": "9660505280810",
       "country": "সৌদি আরব",
+      "role": "সাংগঠনিক সম্পাদক",
       "image": "/images/members/018.jpg",
       "social": {
         "facebook": "https://facebook.com/member018",
@@ -243,13 +249,16 @@
     {
       "id": "021",
       "name": "মোঃ শাহাব উদ্দিন",
-      "mobile": "9660572720605",
+      "father": "বাদশা মিয়া",
+      "mobile": "+9660572720605",
       "country": "সৌদি আরব",
-      "image": "/images/members/021.jpg",
+      "bloodGroup": "B+",
+      "role": "তথ্য ও প্রচার সম্পাদক",
+      "image": "/members/shahabuddin.jpeg",
       "social": {
         "facebook": "https://facebook.com/member021",
         "whatsapp": "https://wa.me/9660572720605",
-        "email": "member021@example.com"
+        "email": "mdshahabuddin47723@gmail.com"
       }
     },
     {

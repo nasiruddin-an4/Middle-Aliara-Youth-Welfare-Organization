@@ -11,14 +11,37 @@ import {
   Users,
   MailCheck,
   Facebook,
+  Shield,
+  Crown,
 } from "lucide-react";
-import Image from "next/image";
 
 const members = membersData.members;
+
+// Committee role order for sorting
+const ROLE_ORDER = [
+  "সভাপতি",
+  "সহ-সভাপতি",
+  "সাধারণ সম্পাদক",
+  "যুগ্ম সম্পাদক",
+  "কোষাধ্যক্ষ",
+  "সাংগঠনিক সম্পাদক",
+  "তথ্য ও প্রচার সম্পাদক",
+];
+
+const ROLE_COLORS = {
+  সভাপতি: "from-amber-400 to-yellow-600",
+  "সহ-সভাপতি": "from-sky-400 to-blue-600",
+  "সাধারণ সম্পাদক": "from-emerald-400 to-green-600",
+  "যুগ্ম সম্পাদক": "from-violet-400 to-purple-600",
+  কোষাধ্যক্ষ: "from-rose-400 to-pink-600",
+  "সাংগঠনিক সম্পাদক": "from-cyan-400 to-teal-600",
+  "তথ্য ও প্রচার সম্পাদক": "from-indigo-400 to-blue-600",
+};
 
 export default function MembersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("All");
+  const [activeTab, setActiveTab] = useState("all"); // "all" or "committee"
 
   // Get unique countries for filter dropdown
   const countries = useMemo(() => {
@@ -26,9 +49,21 @@ export default function MembersPage() {
     return ["All", ...uniqueCountries.sort()];
   }, []);
 
+  // Committee members
+  const committeeMembers = useMemo(() => {
+    return members
+      .filter((m) => m.role)
+      .sort((a, b) => {
+        const aIdx = ROLE_ORDER.indexOf(a.role);
+        const bIdx = ROLE_ORDER.indexOf(b.role);
+        return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx);
+      });
+  }, []);
+
   // Filter logic
   const filteredMembers = useMemo(() => {
-    return members.filter((member) => {
+    const baseList = activeTab === "committee" ? committeeMembers : members;
+    return baseList.filter((member) => {
       const matchesSearch =
         member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         member.mobile.includes(searchTerm) ||
@@ -40,7 +75,7 @@ export default function MembersPage() {
 
       return matchesSearch && matchesCountry;
     });
-  }, [searchTerm, selectedCountry]);
+  }, [searchTerm, selectedCountry, activeTab, committeeMembers]);
 
   // Generate avatar background color based on member name
   const getAvatarGradient = (name) => {
@@ -79,6 +114,50 @@ export default function MembersPage() {
       </div>
 
       <div className="mx-auto px-4 md:px-0 max-w-7xl">
+        {/* Tabs */}
+        <div className="flex items-center gap-2 mb-6">
+          <button
+            onClick={() => {
+              setActiveTab("all");
+              setSelectedCountry("All");
+              setSearchTerm("");
+            }}
+            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 cursor-pointer ${
+              activeTab === "all"
+                ? "bg-[#051C14] text-white shadow-lg shadow-emerald-900/20"
+                : "bg-white text-gray-600 border border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+            }`}
+          >
+            <Users size={16} />
+            সকল সদস্য
+            <span
+              className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === "all" ? "bg-emerald-500/30 text-emerald-200" : "bg-gray-100 text-gray-500"}`}
+            >
+              {members.length}
+            </span>
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab("committee");
+              setSelectedCountry("All");
+              setSearchTerm("");
+            }}
+            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 cursor-pointer ${
+              activeTab === "committee"
+                ? "bg-[#051C14] text-white shadow-lg shadow-emerald-900/20"
+                : "bg-white text-gray-600 border border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+            }`}
+          >
+            <Shield size={16} />
+            কমিটি
+            <span
+              className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === "committee" ? "bg-emerald-500/30 text-emerald-200" : "bg-gray-100 text-gray-500"}`}
+            >
+              {committeeMembers.length}
+            </span>
+          </button>
+        </div>
+
         {/* Controls Section */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-10">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -101,69 +180,110 @@ export default function MembersPage() {
               <div className="flex items-center gap-2">
                 <Users size={16} className="text-emerald-500" />
                 <span className="text-emerald-500 font-medium">
-                  মোট সদস্য: {members.length} জন
+                  {activeTab === "committee" ? "কমিটি সদস্য" : "মোট সদস্য"}:{" "}
+                  {filteredMembers.length} জন
                 </span>
               </div>
-              <div className="w-full md:w-64">
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Globe className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <select
-                    className="block w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 appearance-none transition-all duration-200"
-                    value={selectedCountry}
-                    onChange={(e) => setSelectedCountry(e.target.value)}
-                  >
-                    <option value="All">সকল দেশ</option>
-                    {countries.slice(1).map((country) => (
-                      <option key={country} value={country}>
-                        {country}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                    <svg
-                      className="h-5 w-5 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+              {activeTab === "all" && (
+                <div className="w-full md:w-64">
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Globe className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <select
+                      className="block w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 appearance-none transition-all duration-200"
+                      value={selectedCountry}
+                      onChange={(e) => setSelectedCountry(e.target.value)}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
+                      <option value="All">সকল দেশ</option>
+                      {countries.slice(1).map((country) => (
+                        <option key={country} value={country}>
+                          {country}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <svg
+                        className="h-5 w-5 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Members Grid — Photo Card Style */}
+        {/* Members Grid */}
         {filteredMembers.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
+          <div
+            className={`grid gap-6 lg:gap-8 ${
+              activeTab === "committee"
+                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+            }`}
+          >
             {filteredMembers.map((member) => (
               <div
                 key={member.id}
-                className="group bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-400 ease-out"
+                className={`group bg-white rounded-2xl overflow-hidden border hover:shadow-xl hover:-translate-y-1 transition-all duration-400 ease-out ${
+                  member.role && activeTab === "committee"
+                    ? "border-emerald-100"
+                    : "border-gray-100"
+                }`}
               >
                 {/* Image / Avatar Area */}
                 <div className="relative w-full aspect-square bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
-                  {/* Profile Image with fallback to avatar initial */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div
-                      className={`w-[75%] h-[75%] rounded-2xl bg-gradient-to-br ${getAvatarGradient(
-                        member.name,
-                      )} flex items-center justify-center shadow-lg group-hover:scale-[1.03] transition-transform duration-500`}
-                    >
-                      <span className="text-white font-bold text-6xl sm:text-5xl md:text-6xl select-none drop-shadow-md">
-                        {member.name.charAt(0)}
-                      </span>
+                  {member.image ? (
+                    <>
+                      {/* Try real image */}
+                      <img
+                        src={member.image}
+                        alt={member.name}
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                        onError={(e) => {
+                          // Hide img and show fallback
+                          e.target.style.display = "none";
+                          e.target.parentElement.querySelector(
+                            ".avatar-fallback",
+                          ).style.display = "flex";
+                        }}
+                      />
+                      {/* Fallback avatar (hidden by default when image exists) */}
+                      <div
+                        className="avatar-fallback absolute inset-0 items-center justify-center"
+                        style={{ display: "none" }}
+                      >
+                        <div
+                          className={`w-[75%] h-[75%] rounded-2xl bg-gradient-to-br ${getAvatarGradient(member.name)} flex items-center justify-center shadow-lg group-hover:scale-[1.03] transition-transform duration-500`}
+                        >
+                          <span className="text-white font-bold text-6xl sm:text-5xl md:text-6xl select-none drop-shadow-md">
+                            {member.name.charAt(0)}
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div
+                        className={`w-[75%] h-[75%] rounded-2xl bg-gradient-to-br ${getAvatarGradient(member.name)} flex items-center justify-center shadow-lg group-hover:scale-[1.03] transition-transform duration-500`}
+                      >
+                        <span className="text-white font-bold text-6xl sm:text-5xl md:text-6xl select-none drop-shadow-md">
+                          {member.name.charAt(0)}
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Subtle pattern overlay */}
                   <div
@@ -183,8 +303,15 @@ export default function MembersPage() {
                     {member.name}
                   </h3>
 
+                  {/* Father name */}
+                  {member.father && (
+                    <p className="text-[11px] text-gray-400 mb-0.5">
+                      পিতা: {member.father}
+                    </p>
+                  )}
+
                   {/* Country badge */}
-                  <span className="inline-block text-xs text-gray-500 bg-gray-50 border border-gray-100 px-3 py-0.5 rounded-full mb-4">
+                  <span className="inline-block text-xs text-gray-500 bg-gray-50 border border-gray-100 px-3 py-0.5 rounded-full mb-1">
                     {member.country}
                   </span>
 
@@ -214,7 +341,7 @@ export default function MembersPage() {
                     )}
                     {member.social?.email && (
                       <a
-                        href={member.social.email}
+                        href={`mailto:${member.social.email}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex-1 flex items-center justify-center py-2 rounded-xl bg-emerald-50 text-emerald-500 hover:bg-emerald-100 hover:text-emerald-600 transition-colors duration-200"

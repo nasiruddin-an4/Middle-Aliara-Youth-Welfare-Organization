@@ -301,8 +301,8 @@ function MemberModal({ member, onClose, allPayments }) {
                         <div
                           key={i}
                           className={`rounded-xl p-2 text-center border transition-all duration-200 hover:scale-[1.03] ${paid
-                              ? "bg-gradient-to-b from-emerald-50 to-green-50 border-emerald-200 shadow-sm"
-                              : "bg-gray-50/50 border-gray-100"
+                            ? "bg-gradient-to-b from-emerald-50 to-green-50 border-emerald-200 shadow-sm"
+                            : "bg-gray-50/50 border-gray-100"
                             }`}
                         >
                           <p
@@ -982,7 +982,7 @@ export default function AccountsPage() {
 
             <button
               type="submit"
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl bg-linear-to-r from-emerald-600 to-teal-600 text-white font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2"
             >
               <CheckCircle2 size={18} />
               প্রবেশ করুন
@@ -1039,8 +1039,15 @@ export default function AccountsPage() {
 
       <div className="mx-auto px-4 md:px-8 max-w-7xl">
         {/* ══════ 1. Summary Stats ══════ */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 -mt-8 relative z-10 mb-10">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 -mt-8 relative z-10 mb-10">
           {[
+            {
+              icon: Users,
+              label: "সদস্য তালিকা",
+              value: `${allMembers.length} জন`,
+              accent: "bg-purple-500",
+              sub: "মোট সদস্য সংখ্যা",
+            },
             {
               icon: Wallet,
               label: "সর্বমোট তহবিল",
@@ -1223,8 +1230,8 @@ export default function AccountsPage() {
                     </div>
                     <span
                       className={`inline-flex items-center gap-1 text-[9px] md:text-[12px] font-bold px-2 py-0.5 rounded-lg ${paid
-                          ? "bg-emerald-50 text-emerald-600"
-                          : "bg-red-50 text-red-400"
+                        ? "bg-emerald-50 text-emerald-600"
+                        : "bg-red-50 text-red-400"
                         }`}
                     >
                       {paid ? "✓" : "✗"} {paid ? "পরিশোধিত" : "বকেয়া"}
@@ -1335,8 +1342,9 @@ export default function AccountsPage() {
           {/* Members Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
             {visibleMembers.map((member) => {
-              const mTotal = memberTotals[member.id] || 0;
-              const yearPayments = paymentMap[member.id] || {};
+              const memberId = member.memberId || member.id;
+              const mTotal = memberTotals[memberId] || 0;
+              const yearPayments = paymentMap[memberId] || {};
               const yearPaid = Object.values(yearPayments).reduce(
                 (s, p) => s + p.amount,
                 0,
@@ -1352,9 +1360,25 @@ export default function AccountsPage() {
                   {/* Avatar + Status */}
                   <div className="flex items-center justify-between mb-3">
                     <div
-                      className={`w-10 h-10 md:w-11 md:h-11 rounded-xl bg-linear-to-br ${avatarColor(member.name)} flex items-center justify-center text-white font-bold text-base shrink-0 shadow-md`}
+                      className={`w-10 h-10 md:w-11 md:h-11 rounded-xl bg-linear-to-br ${avatarColor(member.name)} flex items-center justify-center text-white font-bold text-base shrink-0 shadow-md overflow-hidden`}
                     >
-                      {member.name.charAt(0)}
+                      {member.image ? (
+                        <img
+                          src={member.image}
+                          alt={member.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.style.display = "none";
+                            e.target.nextSibling.style.display = "flex";
+                          }}
+                        />
+                      ) : null}
+                      <span
+                        style={{ display: member.image ? "none" : "flex" }}
+                        className="w-full h-full items-center justify-center"
+                      >
+                        {member.name.charAt(0)}
+                      </span>
                     </div>
                     <div
                       className={`px-2 py-0.5 rounded-lg text-[9px] md:text-[10px] font-bold ${thisMonthPaid ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-400"}`}
@@ -1398,6 +1422,22 @@ export default function AccountsPage() {
                         মাস
                       </p>
                     </div>
+                  </div>
+
+                  {/* Monthly Status Grid */}
+                  <div className="grid grid-cols-12 gap-0.5 mb-4 px-1">
+                    {Array.from({ length: 12 }).map((_, i) => {
+                      const monthNum = i + 1;
+                      const p = yearPayments[monthNum];
+                      const isPaid = !!p;
+                      return (
+                        <div
+                          key={i}
+                          className={`h-3 rounded-sm ${isPaid ? "bg-emerald-500" : "bg-gray-100"}`}
+                          title={`${MONTH_SHORT[i]}: ${isPaid ? fmt(p.amount) : "বকেয়া"}`}
+                        />
+                      );
+                    })}
                   </div>
 
                   {/* View Details Button */}

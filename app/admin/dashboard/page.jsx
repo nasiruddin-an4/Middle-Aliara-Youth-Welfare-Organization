@@ -732,12 +732,18 @@ function MembersTab({ members, onRefresh, showToast }) {
   const [preview, setPreview] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const filtered = members.filter(
-    (m) =>
-      m.name?.toLowerCase().includes(search.toLowerCase()) ||
-      m.memberId?.toLowerCase().includes(search.toLowerCase()) ||
-      m.country?.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filtered = members
+    .filter(
+      (m) =>
+        m.name?.toLowerCase().includes(search.toLowerCase()) ||
+        m.memberId?.toLowerCase().includes(search.toLowerCase()) ||
+        m.country?.toLowerCase().includes(search.toLowerCase()),
+    )
+    .sort((a, b) => {
+      const idA = parseInt(a.memberId) || 0;
+      const idB = parseInt(b.memberId) || 0;
+      return idA - idB;
+    });
 
   const openCreate = () => {
     setEditing(null);
@@ -877,6 +883,9 @@ function MembersTab({ members, onRefresh, showToast }) {
             <thead>
               <tr className="bg-gray-50 text-left">
                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">
+                  ক্রমিক নং
+                </th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">
                   আইডি
                 </th>
                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">
@@ -897,8 +906,11 @@ function MembersTab({ members, onRefresh, showToast }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filtered.map((m) => (
+              {filtered.map((m, index) => (
                 <tr key={m._id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3 font-mono text-xs font-bold text-gray-600">
+                    {String(index + 1).padStart(2, "0")}
+                  </td>
                   <td className="px-4 py-3 font-mono text-xs text-gray-500">
                     {m.memberId}
                   </td>
@@ -958,7 +970,7 @@ function MembersTab({ members, onRefresh, showToast }) {
               {filtered.length === 0 && (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="px-4 py-8 text-center text-gray-400"
                   >
                     কোনো সদস্য পাওয়া যায়নি

@@ -30,7 +30,7 @@
         },
         "secondary": {
           "text": "স্বচ্ছতা যাচাই করুন",
-          "href": "/transparency",
+          "href": "/accounts",
           "icon": "arrow-right"
         }
       }
@@ -118,7 +118,7 @@
       "description": "মধ্য আলীয়ারা গ্রামের সকল প্রবাসী ও যুবকদের জন্য আমাদের ঐক্য পরিষদ সর্বদা উন্মুক্ত।",
       "buttons": {
         "primary": { "text": "কমিটির সাথে যোগাযোগ করুন", "href": "/contact" },
-        "secondary": { "text": "আমাদের লক্ষ্যসমূহ দেখুন", "href": "/goals" }
+        "secondary": { "text": "আমাদের লক্ষ্যসমূহ দেখুন", "href": "/about" }
       }
     },
     "footer": {
@@ -127,30 +127,28 @@
       "description": "এই প্রতিষ্ঠান মানবতার শিক্ষক, মানুষের মুক্তি ও শান্তির দূত, মানবসেবার আদর্শ, মহানবী মুহাম্মদ সা.-এর পদাঙ্ক অনুসরণ করে আর্তমানবতার সেবায় একটি আদর্শ কল্যাণসমাজ বিনির্মাণে যথাসাধ্য প্রচেষ্টা চালিয়ে যাচ্ছে।",
       "sections": [
         {
-          "title": "মেনু",
+          "title": "দ্রুত লিঙ্ক",
           "links": [
+            { "label": "হোম", "href": "/" },
             { "label": "আমাদের সম্পর্কে", "href": "/about" },
             { "label": "কার্যক্রমসমূহ", "href": "/activities" },
-            { "label": "ব্লগ", "href": "/blog" },
-            { "label": "গ্যালারি", "href": "/gallery" }
+            { "label": "সদস্যবৃন্দ", "href": "/members" }
+          ]
+        },
+        {
+          "title": "রিসোর্স",
+          "links": [
+            { "label": "হিসাব রক্ষণ", "href": "/accounts" },
+            { "label": "গ্যালারি", "href": "/gallery" },
+            { "label": "ব্লগ", "href": "/blog" }
           ]
         },
         {
           "title": "যুক্ত হোন",
           "links": [
-            { "label": "নিয়মিত দাতা", "href": "/donate-regular" },
-            { "label": "সদস্য", "href": "/members" },
-            { "label": "আজীবন ও দাতা সদস্য", "href": "/life-members" },
-            { "label": "স্বেচ্ছাসেবক", "href": "/volunteer" },
-            { "label": "ক্যারিয়ার", "href": "/career" }
-          ]
-        },
-        {
-          "title": "অন্যান্য",
-          "links": [
-            { "label": "যোগাযোগ", "href": "/contact" },
-            { "label": "পরিষেবার শর্তাবলী", "href": "/terms" },
-            { "label": "গোপনীয়তা নীতি", "href": "/privacy" }
+            { "label": "দান করুন", "href": "/donate" },
+            { "label": "সদস্য হন", "href": "/join" },
+            { "label": "যোগাযোগ", "href": "/contact" }
           ]
         }
       ]
@@ -256,6 +254,71 @@
             "description": "প্রতিটি কাজের ফলাফল এবং ব্যয়ের পুঙ্খানুপুঙ্খ রিপোর্ট সবার সামনে উপস্থাপন।"
           }
         ]
+      }
+    },
+    "donate_page": {
+      "hero": {
+        "title": "আপনার অনুদান, আমাদের শক্তি",
+        "description": "সমাজের সুবিধাবঞ্চিত মানুষের পাশে দাঁড়াতে আপনার সহযোগিতাই আমাদের মূল চালিকাশক্তি। আপনার সামান্য অনুদানই এনে দিতে পারে বিরাট পরিবর্তন।"
+      },
+      "methods": {
+        "title": "যেভাবে দান করবেন",
+        "subtitle": "নিচের যেকোনো মাধ্যম ব্যবহার করে আপনার অনুদান পাঠাতে পারেন।",
+        "bkash": {
+          "title": "বিকাশ (পার্সোনাল)",
+          "number": "01745155818"
+        },
+        "nagad": {
+          "title": "নগদ (পার্সোনাল)",
+          "number": "01745155818"
+        },
+        "bank": {
+          "title": "ব্যাংক ট্রান্সফার",
+          "details": "অ্যাকাউন্ট নাম: মধ্য আলীয়ারা যুব কল্যাণ সংগঠন\nব্যাংক: ডাচ বাংলা ব্যাংক লিঃ\nশাখা: কচুয়া\nহিসাব নম্বর: 2050100000000"
+        }
+      },
+      "contact": {
+        "title": "যেকোনো প্রয়োজনে যোগাযোগ করুন",
+        "phone": "+880 1815654292"
+      }
+    },
+    "contact_page": {
+      "hero": {
+        "title": "আমাদের সাথে যোগাযোগ করুন",
+        "description": "আপনার যেকোনো মতামত, পরামর্শ বা জিজ্ঞাসার জন্য আমাদের সাথে যোগাযোগ করতে পারেন।"
+      },
+      "info": {
+        "title": "যোগাযোগের ঠিকানা",
+        "address": "মধ্য আলীয়ারা, কচুয়া, চাঁদপুর, বাংলাদেশ - ৩৬৩০",
+        "phone": "+৮৮০ ১৮১৫-৬৫৪২৯২",
+        "email": "info@middlealiara.org"
+      },
+      "form": {
+        "title": "বার্তা পাঠান",
+        "name_label": "আপনার নাম",
+        "contact_label": "ফোন বা ইমেইল",
+        "message_label": "আপনার বার্তা",
+        "submit_button": "বার্তা পাঠান"
+      }
+    },
+    "join_page": {
+      "hero": {
+        "title": "সদস্য হতে আবেদন করুন",
+        "description": "আমাদের সংগঠনে যুক্ত হয়ে সমাজ সেবায় অংশ নিন। নিচের ফরমটি পূরণ করুন, আমরা আপনার সাথে যোগাযোগ করব।"
+      },
+      "form": {
+        "title": "সদস্য নিবন্ধন ফরম",
+        "labels": {
+          "fullName": "পুরো নাম",
+          "fatherName": "পিতার নাম",
+          "motherName": "মাতার নাম",
+          "phone": "মোবাইল নম্বর",
+          "email": "ইমেইল (যদি থাকে)",
+          "address": "বর্তমান ঠিকানা",
+          "profession": "পেশা",
+          "bloodGroup": "রক্তের গ্রুপ"
+        },
+        "submit_button": "আবেদন জমা দিন"
       }
     }
   },
@@ -378,7 +441,7 @@
       "description": "Our Unity Council is always open for all expatriates and youth of Middle Aliara Village.",
       "buttons": {
         "primary": { "text": "Contact the Committee", "href": "/contact" },
-        "secondary": { "text": "View our goals", "href": "/goals" }
+        "secondary": { "text": "View our goals", "href": "/about" }
       }
     },
     "footer": {
@@ -387,30 +450,28 @@
       "description": "This institution follows the footsteps of the Prophet Muhammad (PBUH), the teacher of humanity, the messenger of human liberation and peace, and the ideal of human service, to build an ideal welfare society in the service of suffering humanity.",
       "sections": [
         {
-          "title": "Menu",
+          "title": "Quick Links",
           "links": [
+            { "label": "Home", "href": "/" },
             { "label": "About Us", "href": "/about" },
             { "label": "Activities", "href": "/activities" },
-            { "label": "Blog", "href": "/blog" },
-            { "label": "Gallery", "href": "/gallery" }
+            { "label": "Members", "href": "/members" }
+          ]
+        },
+        {
+          "title": "Resources",
+          "links": [
+            { "label": "Accounts", "href": "/accounts" },
+            { "label": "Gallery", "href": "/gallery" },
+            { "label": "Blog", "href": "/blog" }
           ]
         },
         {
           "title": "Get Involved",
           "links": [
-            { "label": "Regular Donor", "href": "/donate-regular" },
-            { "label": "Member", "href": "/members" },
-            { "label": "Life & Donor Member", "href": "/life-members" },
-            { "label": "Volunteer", "href": "/volunteer" },
-            { "label": "Career", "href": "/career" }
-          ]
-        },
-        {
-          "title": "Others",
-          "links": [
-            { "label": "Contact", "href": "/contact" },
-            { "label": "Terms of Service", "href": "/terms" },
-            { "label": "Privacy Policy", "href": "/privacy" }
+            { "label": "Donate", "href": "/donate" },
+            { "label": "Join Us", "href": "/join" },
+            { "label": "Contact", "href": "/contact" }
           ]
         }
       ]
@@ -525,6 +586,71 @@
             "description": "Presenting the results of each work and a meticulous report of expenditure to everyone."
           }
         ]
+      }
+    },
+    "donate_page": {
+      "hero": {
+        "title": "Your Donation, Our Strength",
+        "description": "Your support is our main driving force to stand by the underprivileged people of society. Your small donation can bring a big change."
+      },
+      "methods": {
+        "title": "How to Donate",
+        "subtitle": "You can send your donation using any of the methods below.",
+        "bkash": {
+          "title": "Bkash (Personal)",
+          "number": "018XXXXXXXX"
+        },
+        "nagad": {
+          "title": "Nagad (Personal)",
+          "number": "018XXXXXXXX"
+        },
+        "bank": {
+          "title": "Bank Transfer",
+          "details": "Account Name: Middle Aliara Youth Welfare Organization\nBank: Islami Bank Bangladesh Ltd.\nBranch: Kachua\nAccount Number: 2050XXXXXXXXX"
+        }
+      },
+      "contact": {
+        "title": "Contact for any queries",
+        "phone": "+880 1815-654292"
+      }
+    },
+    "contact_page": {
+      "hero": {
+        "title": "Contact Us",
+        "description": "Feel free to contact us for any feedback, suggestions, or inquiries."
+      },
+      "info": {
+        "title": "Contact Details",
+        "address": "Middle Aliara, Kachua, Chandpur, Bangladesh - 3630",
+        "phone": "+880 1815-654292",
+        "email": "midaliyarayouthwelfare@gmail.com"
+      },
+      "form": {
+        "title": "Send a Message",
+        "name_label": "Your Name",
+        "contact_label": "Phone or Email",
+        "message_label": "Your Message",
+        "submit_button": "Send Message"
+      }
+    },
+    "join_page": {
+      "hero": {
+        "title": "Apply for Membership",
+        "description": "Join our organization and participate in social service. Fill out the form below, and we will contact you."
+      },
+      "form": {
+        "title": "Member Registration Form",
+        "labels": {
+          "fullName": "Full Name",
+          "fatherName": "Father's Name",
+          "motherName": "Mother's Name",
+          "phone": "Mobile Number",
+          "email": "Email (Optional)",
+          "address": "Current Address",
+          "profession": "Profession",
+          "bloodGroup": "Blood Group"
+        },
+        "submit_button": "Submit Application"
       }
     }
   }

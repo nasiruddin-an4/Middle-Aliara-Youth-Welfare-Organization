@@ -439,7 +439,7 @@ export default function MembersPage() {
                 উন্মুক্ত। ঐক্যবদ্ধ সমাজের অংশ হতে আজই যোগাযোগ করুন।
               </p>
               <a
-                href="#"
+                href="/join"
                 className="inline-flex items-center gap-2 bg-white text-[#051C14] font-bold px-8 py-3.5 rounded-full text-base hover:bg-emerald-50 hover:shadow-lg hover:shadow-emerald-900/20 transition-all duration-300 group"
               >
                 <span>সদস্য হওয়ার আবেদন করুন</span>

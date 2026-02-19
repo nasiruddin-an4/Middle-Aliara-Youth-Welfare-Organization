@@ -32,6 +32,7 @@ import {
   Film,
   Star,
   XCircle,
+  MessageSquare,
 } from "lucide-react";
 
 // ─── Sidebar Nav Items ───
@@ -42,6 +43,8 @@ const navItems = [
   { id: "accounting", label: "হিসাব নিকাশ", icon: Banknote },
   { id: "gallery", label: "গ্যালারি ব্যবস্থাপনা", icon: ImageIcon },
   { id: "activities", label: "চলমান কার্যক্রমসমূহ", icon: Activity },
+  { id: "messages", label: "যোগাযোগ বার্তা", icon: MessageSquare },
+  { id: "join_requests", label: "সদস্য আবেদন", icon: UserPlus },
 ];
 
 // ─── SweetAlert2 Toast helper ───
@@ -292,6 +295,8 @@ export default function AdminDashboard() {
   const [expenses, setExpenses] = useState([]);
   const [gallery, setGallery] = useState([]);
   const [activities, setActivities] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [joinRequests, setJoinRequests] = useState([]);
 
   // Auth check
   useEffect(() => {
@@ -306,25 +311,32 @@ export default function AdminDashboard() {
   // Fetch data
   const fetchAll = useCallback(async () => {
     try {
-      const [mRes, pRes, eRes, gRes, aRes] = await Promise.all([
+      const [mRes, pRes, eRes, gRes, aRes, msgRes, jrRes] = await Promise.all([
         fetch("/api/members"),
         fetch("/api/payments"),
         fetch("/api/expenses"),
         fetch("/api/gallery"),
         fetch("/api/activities"),
+        fetch("/api/contact"),
+        fetch("/api/join"),
       ]);
-      const [mData, pData, eData, gData, aData] = await Promise.all([
-        mRes.json(),
-        pRes.json(),
-        eRes.json(),
-        gRes.json(),
-        aRes.json(),
-      ]);
+      const [mData, pData, eData, gData, aData, msgData, jrData] =
+        await Promise.all([
+          mRes.json(),
+          pRes.json(),
+          eRes.json(),
+          gRes.json(),
+          aRes.json(),
+          msgRes.json(),
+          jrRes.json(),
+        ]);
       if (mData.success) setMembers(mData.data);
       if (pData.success) setPayments(pData.data);
       if (eData.success) setExpenses(eData.data);
       if (gData.success) setGallery(gData.data);
       if (aData.success) setActivities(aData.data);
+      if (msgData.success) setMessages(msgData.data);
+      if (jrData.success) setJoinRequests(jrData.data);
     } catch {
       // silent
     }
@@ -515,6 +527,8 @@ export default function AdminDashboard() {
               payments={payments}
               gallery={gallery}
               activities={activities}
+              messages={messages}
+              joinRequests={joinRequests}
               onNavigate={setActiveTab}
             />
           )}
@@ -552,6 +566,20 @@ export default function AdminDashboard() {
           {activeTab === "activities" && (
             <ActivitiesTab
               activities={activities}
+              onRefresh={fetchAll}
+              showToast={showToast}
+            />
+          )}
+          {activeTab === "messages" && (
+            <MessagesTab
+              messages={messages}
+              onRefresh={fetchAll}
+              showToast={showToast}
+            />
+          )}
+          {activeTab === "join_requests" && (
+            <JoinRequestsTab
+              requests={joinRequests}
               onRefresh={fetchAll}
               showToast={showToast}
             />
@@ -596,7 +624,15 @@ export default function AdminDashboard() {
 // ════════════════════════════
 // ═══ DASHBOARD TAB ═════════
 // ════════════════════════════
-function DashboardTab({ members, payments, gallery, activities, onNavigate }) {
+function DashboardTab({
+  members,
+  payments,
+  gallery,
+  activities,
+  messages,
+  joinRequests,
+  onNavigate,
+}) {
   const totalPayments = payments.reduce((s, p) => s + p.amount, 0);
   const fmt = (n) =>
     new Intl.NumberFormat("bn-BD", {
@@ -3141,6 +3177,158 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
           </div>
         </Modal>
       )}
+    </div>
+  );
+}
+// ════════════════════════════
+// ═══ MESSAGES TAB ═══════════
+// ════════════════════════════
+function MessagesTab({ messages, onRefresh, showToast }) {
+  return (
+    <div className="space-y-6 animate-slide-in">
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <h3 className="font-bold text-gray-800">
+            যোগাযোগ বার্তা ({messages?.length || 0})
+          </h3>
+          <button
+            onClick={onRefresh}
+            className="p-2 hover:bg-gray-50 rounded-lg"
+          >
+            <Activity size={18} className="text-gray-500" />
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-gray-50 text-xs uppercase text-gray-500 font-medium">
+              <tr>
+                <th className="px-6 py-3">তারিখ</th>
+                <th className="px-6 py-3">নাম</th>
+                <th className="px-6 py-3">ফোন/ইমেইল</th>
+                <th className="px-6 py-3">বার্তা</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50 text-sm">
+              {messages?.map((msg) => (
+                <tr
+                  key={msg._id}
+                  className="hover:bg-gray-50/50 transition-colors"
+                >
+                  <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
+                    {new Date(msg.createdAt).toLocaleDateString("bn-BD")}
+                  </td>
+                  <td className="px-6 py-4 font-medium text-gray-800">
+                    {msg.name}
+                  </td>
+                  <td className="px-6 py-4 text-emerald-600 font-mono">
+                    {msg.contact}
+                  </td>
+                  <td
+                    className="px-6 py-4 text-gray-600 max-w-md truncate"
+                    title={msg.message}
+                  >
+                    {msg.message}
+                  </td>
+                </tr>
+              ))}
+              {(!messages || messages.length === 0) && (
+                <tr>
+                  <td
+                    colSpan="4"
+                    className="px-6 py-8 text-center text-gray-400"
+                  >
+                    কোনো বার্তা নেই
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════
+// ═══ JOIN REQUESTS TAB ══════
+// ════════════════════════════
+function JoinRequestsTab({ requests, onRefresh, showToast }) {
+  return (
+    <div className="space-y-6 animate-slide-in">
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <h3 className="font-bold text-gray-800">
+            সদস্য হওয়ার আবেদন ({requests?.length || 0})
+          </h3>
+          <button
+            onClick={onRefresh}
+            className="p-2 hover:bg-gray-50 rounded-lg"
+          >
+            <Activity size={18} className="text-gray-500" />
+          </button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-gray-50 text-xs uppercase text-gray-500 font-medium">
+              <tr>
+                <th className="px-6 py-3">তারিখ</th>
+                <th className="px-6 py-3">নাম</th>
+                <th className="px-6 py-3">পিতার নাম</th>
+                <th className="px-6 py-3">ফোন</th>
+                <th className="px-6 py-3">ঠিকানা</th>
+                <th className="px-6 py-3">স্ট্যাটাস</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50 text-sm">
+              {requests?.map((req) => (
+                <tr
+                  key={req._id}
+                  className="hover:bg-gray-50/50 transition-colors"
+                >
+                  <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
+                    {new Date(req.createdAt).toLocaleDateString("bn-BD")}
+                  </td>
+                  <td className="px-6 py-4 font-medium text-gray-800">
+                    {req.fullName}
+                  </td>
+                  <td className="px-6 py-4 text-gray-600">{req.fatherName}</td>
+                  <td className="px-6 py-4 text-emerald-600 font-mono">
+                    {req.phone}
+                  </td>
+                  <td className="px-6 py-4 text-gray-600">{req.address}</td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`px-2 py-1 rounded text-xs font-semibold ${
+                        req.status === "pending"
+                          ? "bg-amber-100 text-amber-700"
+                          : req.status === "approved"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {req.status === "pending"
+                        ? "অপেক্ষমান"
+                        : req.status === "approved"
+                          ? "অনুমোদিত"
+                          : "বাতিল"}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {(!requests || requests.length === 0) && (
+                <tr>
+                  <td
+                    colSpan="6"
+                    className="px-6 py-8 text-center text-gray-400"
+                  >
+                    কোনো আবেদন নেই
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }

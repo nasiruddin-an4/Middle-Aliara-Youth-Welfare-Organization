@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, Shield, Heart } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
+import Image from "next/image";
 
 export default function Navbar() {
   const { content, language, toggleLanguage } = useLanguage();
@@ -21,8 +22,13 @@ export default function Navbar() {
               href="/"
               className="flex items-center gap-3 group z-50 relative"
             >
-              <div className="bg-primary text-white p-2 rounded-lg group-hover:scale-105 transition-transform duration-300">
-                <Shield size={24} />
+              <div className="group-hover:scale-105 transition-transform duration-300">
+                <Image
+                  src="/mainLogo@4x.png"
+                  alt="Logo"
+                  width={70}
+                  height={70}
+                />
               </div>
               <div className="flex flex-col">
                 <span className="font-bold text-gray-900 text-sm md:text-base leading-tight group-hover:text-primary transition-colors duration-200">

@@ -240,7 +240,7 @@ export default function ActivityDetailPage({ params }) {
           </div>
         )}
 
-        <div className="relative container mx-auto px-4 pt-24 pb-16 md:pt-28 md:pb-20">
+        <div className="relative max-w-7xl mx-auto px-4 pt-24 pb-16 md:pt-28 md:pb-20">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-sm text-gray-400 mb-6">
             <Link href="/" className="hover:text-white transition-colors">
@@ -310,7 +310,7 @@ export default function ActivityDetailPage({ params }) {
       </div>
 
       {/* ── Content ── */}
-      <div className="container mx-auto px-4 -mt-6 relative z-10 pb-20">
+      <div className="max-w-7xl mx-auto px-4 -mt-6 relative z-10 pb-20">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* ── Main Content ── */}
           <div className="lg:col-span-2 space-y-8">

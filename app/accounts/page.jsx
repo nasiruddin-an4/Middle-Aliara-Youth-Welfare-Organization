@@ -208,20 +208,20 @@ function MemberModal({ member, onClose, allPayments }) {
             {(member.father ||
               (member.social?.email &&
                 !member.social.email.includes("@example.com"))) && (
-                <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
-                  {member.father && (
-                    <span className="text-[10px] text-emerald-300/60">
-                      পিতা: {member.father}
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+                {member.father && (
+                  <span className="text-[10px] text-emerald-300/60">
+                    পিতা: {member.father}
+                  </span>
+                )}
+                {member.social?.email &&
+                  !member.social.email.includes("@example.com") && (
+                    <span className="text-[10px] text-emerald-300/50 truncate max-w-[200px]">
+                      ✉️ {member.social.email}
                     </span>
                   )}
-                  {member.social?.email &&
-                    !member.social.email.includes("@example.com") && (
-                      <span className="text-[10px] text-emerald-300/50 truncate max-w-[200px]">
-                        ✉️ {member.social.email}
-                      </span>
-                    )}
-                </div>
-              )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -300,10 +300,11 @@ function MemberModal({ member, onClose, allPayments }) {
                       return (
                         <div
                           key={i}
-                          className={`rounded-xl p-2 text-center border transition-all duration-200 hover:scale-[1.03] ${paid
-                            ? "bg-gradient-to-b from-emerald-50 to-green-50 border-emerald-200 shadow-sm"
-                            : "bg-gray-50/50 border-gray-100"
-                            }`}
+                          className={`rounded-xl p-2 text-center border transition-all duration-200 hover:scale-[1.03] ${
+                            paid
+                              ? "bg-gradient-to-b from-emerald-50 to-green-50 border-emerald-200 shadow-sm"
+                              : "bg-gray-50/50 border-gray-100"
+                          }`}
                         >
                           <p
                             className={`text-[10px] font-semibold mb-1 ${paid ? "text-emerald-600" : "text-gray-400"}`}
@@ -572,7 +573,10 @@ function PaymentDetailModal({ member, monthName, year, onClose }) {
                   const lineHeight = 50;
                   const details = [
                     { label: "সদস্যের নাম", value: member.name },
-                    { label: "সদস্য আইডি", value: member.id },
+                    {
+                      label: "সদস্য আইডি",
+                      value: member.memberId || member.id || "—",
+                    },
                     { label: "মাস", value: `${monthName}, ${year}` },
                     { label: "পেমেন্ট মাধ্যম", value: member.source },
                     { label: "পেমেন্ট তারিখ", value: formatDate(member.date) },
@@ -720,7 +724,8 @@ export default function AccountsPage() {
         headers: { "Content-Type": "application/json" },
       });
       const data = await res.json();
-      if (data.success || data.accessed) { // success from POST or accessed from cookie
+      if (data.success || data.accessed) {
+        // success from POST or accessed from cookie
         setAccess(true);
         setErrorMsg("");
       } else {
@@ -957,7 +962,9 @@ export default function AccountsPage() {
           <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <Shield size={32} className="text-emerald-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">সুরক্ষিত পাতা</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            সুরক্ষিত পাতা
+          </h2>
           <p className="text-sm text-gray-500 mb-6">
             অ্যাকাউন্টস পেজটি দেখতে দয়া করে পাসওয়ার্ড দিন।
           </p>
@@ -1200,8 +1207,9 @@ export default function AccountsPage() {
               return (
                 <div
                   key={item._id || item.id || index}
-                  className={`bg-white rounded-2xl border p-3.5 md:p-4 transition-all duration-300 group hover:shadow-lg ${paid ? "border-emerald-100" : "border-gray-100"
-                    }`}
+                  className={`bg-white rounded-2xl border p-3.5 md:p-4 transition-all duration-300 group hover:shadow-lg ${
+                    paid ? "border-emerald-100" : "border-gray-100"
+                  }`}
                 >
                   {/* Serial + Avatar + Status */}
                   <div className="flex items-center justify-between mb-3">
@@ -1229,10 +1237,11 @@ export default function AccountsPage() {
                       </div>
                     </div>
                     <span
-                      className={`inline-flex items-center gap-1 text-[9px] md:text-[12px] font-bold px-2 py-0.5 rounded-lg ${paid
-                        ? "bg-emerald-50 text-emerald-600"
-                        : "bg-red-50 text-red-400"
-                        }`}
+                      className={`inline-flex items-center gap-1 text-[9px] md:text-[12px] font-bold px-2 py-0.5 rounded-lg ${
+                        paid
+                          ? "bg-emerald-50 text-emerald-600"
+                          : "bg-red-50 text-red-400"
+                      }`}
                     >
                       {paid ? "✓" : "✗"} {paid ? "পরিশোধিত" : "বকেয়া"}
                     </span>

@@ -39,6 +39,7 @@ const navItems = [
   { id: "dashboard", label: "ড্যাশবোর্ড", icon: LayoutDashboard },
   { id: "members", label: "সদস্য ব্যবস্থাপনা", icon: Users },
   { id: "payments", label: "পেমেন্ট ব্যবস্থাপনা", icon: CreditCard },
+  { id: "accounting", label: "হিসাব নিকাশ", icon: Banknote },
   { id: "gallery", label: "গ্যালারি ব্যবস্থাপনা", icon: ImageIcon },
   { id: "activities", label: "চলমান কার্যক্রমসমূহ", icon: Activity },
 ];
@@ -288,6 +289,7 @@ export default function AdminDashboard() {
   // Data states
   const [members, setMembers] = useState([]);
   const [payments, setPayments] = useState([]);
+  const [expenses, setExpenses] = useState([]);
   const [gallery, setGallery] = useState([]);
   const [activities, setActivities] = useState([]);
 
@@ -304,20 +306,23 @@ export default function AdminDashboard() {
   // Fetch data
   const fetchAll = useCallback(async () => {
     try {
-      const [mRes, pRes, gRes, aRes] = await Promise.all([
+      const [mRes, pRes, eRes, gRes, aRes] = await Promise.all([
         fetch("/api/members"),
         fetch("/api/payments"),
+        fetch("/api/expenses"),
         fetch("/api/gallery"),
         fetch("/api/activities"),
       ]);
-      const [mData, pData, gData, aData] = await Promise.all([
+      const [mData, pData, eData, gData, aData] = await Promise.all([
         mRes.json(),
         pRes.json(),
+        eRes.json(),
         gRes.json(),
         aRes.json(),
       ]);
       if (mData.success) setMembers(mData.data);
       if (pData.success) setPayments(pData.data);
+      if (eData.success) setExpenses(eData.data);
       if (gData.success) setGallery(gData.data);
       if (aData.success) setActivities(aData.data);
     } catch {
@@ -528,6 +533,15 @@ export default function AdminDashboard() {
               showToast={showToast}
             />
           )}
+          {activeTab === "accounting" && (
+            <AccountingTab
+              payments={payments}
+              expenses={expenses}
+              members={members}
+              onRefresh={fetchAll}
+              showToast={showToast}
+            />
+          )}
           {activeTab === "gallery" && (
             <GalleryTab
               gallery={gallery}
@@ -727,6 +741,8 @@ function MembersTab({ members, onRefresh, showToast }) {
     email: "",
     fatherName: "",
     bloodGroup: "",
+    facebook: "",
+    whatsapp: "",
   });
   const [imageFile, setImageFile] = useState(null);
   const [preview, setPreview] = useState("");
@@ -756,6 +772,8 @@ function MembersTab({ members, onRefresh, showToast }) {
       email: "",
       fatherName: "",
       bloodGroup: "",
+      facebook: "",
+      whatsapp: "",
     });
     setImageFile(null);
     setPreview("");
@@ -773,6 +791,8 @@ function MembersTab({ members, onRefresh, showToast }) {
       email: member.email || member.social?.email || "",
       fatherName: member.fatherName || "",
       bloodGroup: member.bloodGroup || "",
+      facebook: member.social?.facebook || "",
+      whatsapp: member.social?.whatsapp || "",
     });
     setImageFile(null);
     setPreview(member.image || "");
@@ -796,8 +816,10 @@ function MembersTab({ members, onRefresh, showToast }) {
         image: imageUrl,
         social: {
           email: form.email,
-          whatsapp: form.mobile ? `https://wa.me/${form.mobile}` : "",
-          facebook: "",
+          whatsapp:
+            form.whatsapp ||
+            (form.mobile ? `https://wa.me/${form.mobile}` : ""),
+          facebook: form.facebook || "",
         },
       };
 
@@ -1049,6 +1071,21 @@ function MembersTab({ members, onRefresh, showToast }) {
                   setForm({ ...form, bloodGroup: e.target.value })
                 }
                 placeholder="A+"
+              />
+            </div>
+            {/* Social Media URLs */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormInput
+                label="ফেসবুক লিংক"
+                value={form.facebook}
+                onChange={(e) => setForm({ ...form, facebook: e.target.value })}
+                placeholder="https://facebook.com/username"
+              />
+              <FormInput
+                label="হোয়াটসঅ্যাপ লিংক"
+                value={form.whatsapp}
+                onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
+                placeholder="https://wa.me/88017XXXXXXXX"
               />
             </div>
             {/* Image Upload */}
@@ -2335,6 +2372,766 @@ function ActivitiesTab({ activities, onRefresh, showToast }) {
                   : "কার্যক্রম যোগ করুন"}
             </button>
           </form>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ════════════════════════════
+// ═══ ACCOUNTING TAB ═════════
+// ════════════════════════════
+function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
+  const [view, setView] = useState("summary"); // summary | expenses
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
+  // Expense Modal State
+  const [showModal, setShowModal] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [expenseForm, setExpenseForm] = useState({
+    title: "",
+    amount: "",
+    category: "",
+    date: new Date().toISOString().split("T")[0],
+    description: "",
+    numberGiven: "",
+    amountPerPerson: "",
+    location: "",
+  });
+
+  // Filters State
+
+  const [memberSearch, setMemberSearch] = useState("");
+  const [expenseSearch, setExpenseSearch] = useState("");
+  const [expenseCategory, setExpenseCategory] = useState("");
+  const [selectedMemberStats, setSelectedMemberStats] = useState(null);
+
+  // Calculate Stats
+  const years = useMemo(() => {
+    const pYears = payments.map((p) => p.year);
+    const eYears = expenses.map(
+      (e) => e.year || new Date(e.date).getFullYear(),
+    );
+    const allYears = [...new Set([...pYears, ...eYears])].sort((a, b) => b - a);
+    return allYears.length > 0 ? allYears : [new Date().getFullYear()];
+  }, [payments, expenses]);
+
+  const totalCollection = payments.reduce((s, p) => s + p.amount, 0);
+  const totalExpense = expenses.reduce((s, e) => s + e.amount, 0);
+  const currentBalance = totalCollection - totalExpense;
+
+  const getMonthName = (m) => {
+    const months = [
+      "জানুয়ারি",
+      "ফেব্রুয়ারি",
+      "মার্চ",
+      "এপ্রিল",
+      "মে",
+      "জুন",
+      "জুলাই",
+      "আগস্ট",
+      "সেপ্টেম্বর",
+      "অক্টোবর",
+      "নভেম্বর",
+      "ডিসেম্বর",
+    ];
+    return months[m - 1] || "";
+  };
+
+  const monthlyStats = useMemo(() => {
+    const stats = Array(12)
+      .fill(0)
+      .map((_, i) => ({
+        month: i + 1,
+        monthName: getMonthName(i + 1),
+        collection: 0,
+        expense: 0,
+      }));
+
+    payments.forEach((p) => {
+      if (p.year === selectedYear) {
+        stats[p.month - 1].collection += p.amount;
+      }
+    });
+
+    expenses.forEach((e) => {
+      const eYear = e.year || new Date(e.date).getFullYear();
+      const eMonth = e.month || new Date(e.date).getMonth() + 1;
+      if (eYear === selectedYear) {
+        stats[eMonth - 1].expense += e.amount;
+      }
+    });
+
+    return stats;
+  }, [payments, expenses, selectedYear]);
+
+  const memberStats = useMemo(() => {
+    const stats = {};
+    payments.forEach((p) => {
+      if (p.year === selectedYear) {
+        if (!stats[p.memberId]) {
+          const member = members.find((m) => m.memberId === p.memberId);
+          stats[p.memberId] = {
+            memberId: p.memberId,
+            name: member?.name || "দ্বারা অজানা",
+            total: 0,
+          };
+        }
+        stats[p.memberId].total += p.amount;
+      }
+    });
+    return Object.values(stats)
+      .filter(
+        (m) =>
+          m.name.toLowerCase().includes(memberSearch.toLowerCase()) ||
+          m.memberId.includes(memberSearch),
+      )
+      .sort((a, b) => b.total - a.total);
+  }, [payments, members, selectedYear, memberSearch]);
+
+  const yearlyStats = useMemo(() => {
+    const stats = {};
+    years.forEach((y) => {
+      stats[y] = { year: y, collection: 0, expense: 0 };
+    });
+
+    payments.forEach((p) => {
+      if (stats[p.year]) stats[p.year].collection += p.amount;
+    });
+
+    expenses.forEach((e) => {
+      const y = e.year || new Date(e.date).getFullYear();
+      if (stats[y]) stats[y].expense += e.amount;
+    });
+
+    return Object.values(stats).sort((a, b) => b.year - a.year);
+  }, [payments, expenses, years]);
+
+  const fmt = (n) =>
+    new Intl.NumberFormat("bn-BD", {
+      style: "currency",
+      currency: "BDT",
+      currency: "BDT",
+    }).format(n);
+
+  const filteredExpenses = expenses.filter((e) => {
+    const matchesSearch =
+      validationSearch(e.title, expenseSearch) ||
+      validationSearch(e.description, expenseSearch);
+    const matchesCategory = expenseCategory
+      ? e.category === expenseCategory
+      : true;
+    return matchesSearch && matchesCategory;
+  });
+
+  function validationSearch(text, search) {
+    if (!text) return false;
+    return text.toLowerCase().includes(search.toLowerCase());
+  }
+
+  // Expense Handlers
+  const handleExpenseSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const url = editing ? `/api/expenses/${editing._id}` : "/api/expenses";
+      const method = editing ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(expenseForm),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast(editing ? "খরচ আপডেট হয়েছে" : "খরচ যোগ হয়েছে");
+        setShowModal(false);
+        onRefresh();
+      } else {
+        showToast(data.error || "সমস্যা হয়েছে", "error");
+      }
+    } catch (err) {
+      showToast("সার্ভার এরর", "error");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteExpense = async (id) => {
+    const confirmed = await confirmAction({
+      title: "খরচ মুছতে চান?",
+      text: "এটি ফিরিয়ে আনা যাবে না!",
+      confirmButtonText: "হ্যাঁ, মুছুন",
+    });
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`/api/expenses/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) {
+        showToast("খরচ মুছে ফেলা হয়েছে");
+        onRefresh();
+      } else {
+        showToast(data.error || "মুছতে সমস্যা হয়েছে", "error");
+      }
+    } catch {
+      showToast("সার্ভার এরর", "error");
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header Tabs */}
+      <div className="bg-white p-2 rounded-xl border border-gray-100 inline-flex gap-1">
+        <button
+          onClick={() => setView("summary")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            view === "summary"
+              ? "bg-emerald-50 text-emerald-700 shadow-sm"
+              : "text-gray-500 hover:bg-gray-50"
+          }`}
+        >
+          সামারি রিপোর্ট
+        </button>
+        <button
+          onClick={() => setView("expenses")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            view === "expenses"
+              ? "bg-emerald-50 text-emerald-700 shadow-sm"
+              : "text-gray-500 hover:bg-gray-50"
+          }`}
+        >
+          খরচ ব্যবস্থাপনা
+        </button>
+      </div>
+
+      {view === "summary" && (
+        <div className="space-y-6">
+          {/* Overview Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+              <p className="text-gray-500 text-sm mb-1">মোট কালেকশন</p>
+              <p className="text-2xl font-bold text-emerald-600">
+                {fmt(totalCollection)}
+              </p>
+            </div>
+            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+              <p className="text-gray-500 text-sm mb-1">মোট খরচ</p>
+              <p className="text-2xl font-bold text-red-500">
+                {fmt(totalExpense)}
+              </p>
+            </div>
+            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+              <p className="text-gray-500 text-sm mb-1">বর্তমান ব্যালেন্স</p>
+              <p
+                className={`text-2xl font-bold ${currentBalance >= 0 ? "text-blue-600" : "text-amber-500"}`}
+              >
+                {fmt(currentBalance)}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Yearly Overview Table */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 font-bold text-gray-800">
+                বাৎসরিক হিসাব
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="text-xs text-gray-400 bg-gray-50 uppercase">
+                    <tr>
+                      <th className="px-6 py-3">বছর</th>
+                      <th className="px-6 py-3 text-emerald-600">আয়</th>
+                      <th className="px-6 py-3 text-red-500">ব্যয়</th>
+                      <th className="px-6 py-3 text-blue-600">স্থিতি</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {yearlyStats.map((y) => (
+                      <tr key={y.year} className="hover:bg-gray-50">
+                        <td className="px-6 py-3 font-medium">{y.year}</td>
+                        <td className="px-6 py-3">{fmt(y.collection)}</td>
+                        <td className="px-6 py-3 text-red-500">
+                          {fmt(y.expense)}
+                        </td>
+                        <td className="px-6 py-3 font-bold">
+                          {fmt(y.collection - y.expense)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Monthly Overview Table */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <span className="font-bold text-gray-800">মাসিক হিসাব</span>
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                  className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1 text-sm outline-none focus:border-emerald-500"
+                >
+                  {years.map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="overflow-x-auto max-h-[400px]">
+                <table className="w-full text-sm text-left">
+                  <thead className="text-xs text-gray-400 bg-gray-50 uppercase sticky top-0">
+                    <tr>
+                      <th className="px-6 py-3">মাস</th>
+                      <th className="px-6 py-3 text-emerald-600">আয়</th>
+                      <th className="px-6 py-3 text-red-500">ব্যয়</th>
+                      <th className="px-6 py-3 text-blue-600">স্থিতি</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {monthlyStats.map((m) => (
+                      <tr key={m.month} className="hover:bg-gray-50">
+                        <td className="px-6 py-3 font-medium">{m.monthName}</td>
+                        <td className="px-6 py-3">{fmt(m.collection)}</td>
+                        <td className="px-6 py-3 text-red-500">
+                          {fmt(m.expense)}
+                        </td>
+                        <td className="px-6 py-3 font-bold">
+                          {fmt(m.collection - m.expense)}
+                        </td>
+                      </tr>
+                    ))}
+                    <tr className="bg-gray-50 font-bold">
+                      <td className="px-6 py-3">মোট</td>
+                      <td className="px-6 py-3 text-emerald-600">
+                        {fmt(
+                          monthlyStats.reduce((s, m) => s + m.collection, 0),
+                        )}
+                      </td>
+                      <td className="px-6 py-3 text-red-500">
+                        {fmt(monthlyStats.reduce((s, m) => s + m.expense, 0))}
+                      </td>
+                      <td className="px-6 py-3 text-blue-600">
+                        {fmt(
+                          monthlyStats.reduce(
+                            (s, m) => s + m.collection - m.expense,
+                            0,
+                          ),
+                        )}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {/* Member Yearly Contribution */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <div className="font-bold text-gray-800">
+                  সদস্যদের বাৎসরিক অবদান ({selectedYear})
+                </div>
+                <p className="text-xs text-gray-400">
+                  এই বছরে কে কত টাকা দিয়েছে (বিস্তারিত দেখতে ক্লিক করুন)
+                </p>
+              </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={memberSearch}
+                  onChange={(e) => setMemberSearch(e.target.value)}
+                  placeholder="সদস্য খুঁজুন..."
+                  className="pl-8 pr-3 py-1.5 rounded-lg border border-gray-200 text-xs focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none w-40 sm:w-56"
+                />
+                <Search
+                  size={14}
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+                />
+              </div>
+            </div>
+            <div className="overflow-x-auto max-h-[500px]">
+              <table className="w-full text-sm text-left">
+                <thead className="text-xs text-gray-400 bg-gray-50 uppercase sticky top-0">
+                  <tr>
+                    <th className="px-6 py-3">সদস্য</th>
+                    <th className="px-6 py-3 text-right">পরিমাণ</th>
+                    <th className="px-6 py-3 text-right">বিস্তারিত</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {memberStats.map((m) => (
+                    <tr
+                      key={m.memberId}
+                      className="hover:bg-gray-50"
+                      onClick={() => setSelectedMemberStats(m)}
+                    >
+                      <td className="px-6 py-3">
+                        <p className="font-medium text-gray-800">{m.name}</p>
+                        <p className="text-xs text-gray-400">
+                          ID: {m.memberId}
+                        </p>
+                      </td>
+                      <td className="px-6 py-3 text-right font-bold text-gray-700">
+                        {fmt(m.total)}
+                      </td>
+                      <td className="px-6 py-3 text-right">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedMemberStats(m);
+                          }}
+                          className="p-1.5 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-colors inline-flex cursor-pointer"
+                        >
+                          <Eye size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {memberStats.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={3}
+                        className="px-6 py-8 text-center text-gray-400"
+                      >
+                        কোনো ডাটা পাওয়া যায়নি
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {view === "expenses" && (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+            <h3 className="font-bold text-gray-800">খরচের তালিকা</h3>
+            <button
+              onClick={() => {
+                setEditing(null);
+                setExpenseForm({
+                  title: "",
+                  amount: "",
+                  category: "",
+                  date: new Date().toISOString().split("T")[0],
+                  description: "",
+                  numberGiven: "",
+                  amountPerPerson: "",
+                  location: "",
+                });
+                setShowModal(true);
+              }}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-md text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center gap-2 cursor-pointer"
+            >
+              <PlusCircle size={16} />
+            </button>
+          </div>
+
+          {/* Filters for Expenses */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="relative">
+              <input
+                type="text"
+                value={expenseSearch}
+                onChange={(e) => setExpenseSearch(e.target.value)}
+                placeholder="খরচ খুঁজুন (টাইটেল/বিবরণ)..."
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+              />
+              <Search
+                size={18}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+            </div>
+            <select
+              value={expenseCategory}
+              onChange={(e) => setExpenseCategory(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+            >
+              <option value="">সকল ক্যাটাগরি</option>
+              {[...new Set(expenses.map((e) => e.category))].map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="text-xs text-gray-400 bg-gray-50 uppercase">
+                  <tr>
+                    <th className="px-6 py-3">তারিখ</th>
+                    <th className="px-6 py-3">বিবরণ</th>
+                    <th className="px-6 py-3">ক্যাটাগরি</th>
+                    <th className="px-6 py-3 text-right">পরিমাণ</th>
+                    <th className="px-6 py-3 text-right">অ্যাকশন</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {filteredExpenses.map((expense) => (
+                    <tr key={expense._id} className="hover:bg-gray-50">
+                      <td className="px-6 py-3 text-gray-500">
+                        {new Date(expense.date).toLocaleDateString("bn-BD")}
+                      </td>
+                      <td className="px-6 py-3 font-medium text-gray-800">
+                        {expense.title}
+                        {expense.description && (
+                          <p className="text-xs text-gray-400 font-normal mt-0.5">
+                            {expense.description}
+                          </p>
+                        )}
+                        {expense.location && (
+                          <div className="flex items-center gap-1 text-[10px] text-gray-400 mt-1">
+                            <MapPin size={10} />
+                            {expense.location}
+                          </div>
+                        )}
+                        {expense.numberGiven && expense.amountPerPerson && (
+                          <p className="text-[10px] text-gray-500 mt-0.5">
+                            {expense.numberGiven} জন ×{" "}
+                            {fmt(expense.amountPerPerson)}
+                          </p>
+                        )}
+                      </td>
+                      <td className="px-6 py-3">
+                        <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">
+                          {expense.category}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3 text-right font-bold text-red-500">
+                        {fmt(expense.amount)}
+                      </td>
+                      <td className="px-6 py-3">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => {
+                              setEditing(expense);
+                              setExpenseForm({
+                                title: expense.title,
+                                amount: expense.amount,
+                                category: expense.category,
+                                date: new Date(expense.date)
+                                  .toISOString()
+                                  .split("T")[0],
+                                description: expense.description || "",
+                                numberGiven: expense.numberGiven || "",
+                                amountPerPerson: expense.amountPerPerson || "",
+                                location: expense.location || "",
+                              });
+                              setShowModal(true);
+                            }}
+                            className="p-1.5 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-colors"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteExpense(expense._id)}
+                            className="p-1.5 hover:bg-red-50 text-red-500 rounded-lg transition-colors"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {expenses.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="px-6 py-8 text-center text-gray-400"
+                      >
+                        কোনো খরচের রেকর্ড নেই
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Expense Modal */}
+      {showModal && (
+        <Modal
+          title={editing ? "খরচ এডিট করুন" : "নতুন খরচ যোগ করুন"}
+          onClose={() => setShowModal(false)}
+        >
+          <form onSubmit={handleExpenseSubmit} className="space-y-4">
+            <FormInput
+              label="খরচের নাম/টাইটেল"
+              required
+              value={expenseForm.title}
+              onChange={(e) =>
+                setExpenseForm({ ...expenseForm, title: e.target.value })
+              }
+              placeholder="যেমন: ইফতার বিতরণ"
+            />
+            <div className="grid grid-cols-3 gap-3 bg-gray-50 p-3 rounded-xl border border-dashed border-gray-200">
+              <div className="col-span-3 text-xs font-semibold text-gray-500 mb-1">
+                বিতরণ বিস্তারিত
+              </div>
+              <FormInput
+                label="মোট সংখ্যা (জন/টি)"
+                type="number"
+                required
+                value={expenseForm.numberGiven}
+                onChange={(e) => {
+                  const num = parseFloat(e.target.value) || 0;
+                  const rate = parseFloat(expenseForm.amountPerPerson) || 0;
+                  setExpenseForm((prev) => ({
+                    ...prev,
+                    numberGiven: e.target.value,
+                    amount: num * rate,
+                  }));
+                }}
+                placeholder="যেমন: ৫০"
+              />
+              <FormInput
+                label="জন প্রতি খরচ"
+                type="number"
+                required
+                value={expenseForm.amountPerPerson}
+                onChange={(e) => {
+                  const rate = parseFloat(e.target.value) || 0;
+                  const num = parseFloat(expenseForm.numberGiven) || 0;
+                  setExpenseForm((prev) => ({
+                    ...prev,
+                    amountPerPerson: e.target.value,
+                    amount: num * rate,
+                  }));
+                }}
+                placeholder="0.00"
+              />
+              <FormInput
+                label="স্থান/লোকেশন"
+                required
+                value={expenseForm.location}
+                onChange={(e) =>
+                  setExpenseForm({ ...expenseForm, location: e.target.value })
+                }
+                placeholder="স্থান"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormInput
+                label="পরিমাণ (টাকা)"
+                type="number"
+                required
+                value={expenseForm.amount}
+                onChange={(e) =>
+                  setExpenseForm({ ...expenseForm, amount: e.target.value })
+                }
+                placeholder="0.00"
+              />
+              <FormInput
+                label="তারিখ"
+                type="date"
+                required
+                value={expenseForm.date}
+                onChange={(e) =>
+                  setExpenseForm({ ...expenseForm, date: e.target.value })
+                }
+              />
+            </div>
+
+            <FormInput
+              label="ক্যাটাগরি"
+              required
+              value={expenseForm.category}
+              onChange={(e) =>
+                setExpenseForm({ ...expenseForm, category: e.target.value })
+              }
+              placeholder="যেমন: ইফতার বিতরণ, সবার জন্য কুরবানী, শীতবস্ত্র বিতরণ, ইত্যাদি"
+            />
+            <div className="space-y-1.5">
+              <label className="block text-xs text-gray-500 font-medium">
+                বিস্তারিত বিবরণ (অপশনাল)
+              </label>
+              <textarea
+                value={expenseForm.description}
+                onChange={(e) =>
+                  setExpenseForm({
+                    ...expenseForm,
+                    description: e.target.value,
+                  })
+                }
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 outline-none transition-all h-24 resize-none"
+                placeholder="খরচের বিস্তারিত..."
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
+            >
+              {submitting && <Loader2 size={16} className="animate-spin" />}
+              {editing ? "আপডেট করুন" : "সেভ করুন"}
+            </button>
+          </form>
+        </Modal>
+      )}
+      {/* Member Details Modal */}
+      {selectedMemberStats && (
+        <Modal
+          title={`${selectedMemberStats.name} - বিস্তারিত`}
+          onClose={() => setSelectedMemberStats(null)}
+        >
+          <div className="space-y-4">
+            <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100 text-center">
+              <p className="text-sm text-emerald-800">
+                মোট অবদান ({selectedYear})
+              </p>
+              <p className="text-2xl font-bold text-emerald-600">
+                {fmt(selectedMemberStats.total)}
+              </p>
+            </div>
+
+            <div className="border rounded-xl overflow-hidden text-sm">
+              <table className="w-full text-left">
+                <thead className="bg-gray-50 text-xs uppercase text-gray-500 font-medium">
+                  <tr>
+                    <th className="px-4 py-2">তারিখ</th>
+                    <th className="px-4 py-2">মাস</th>
+                    <th className="px-4 py-2 text-right">পরিমাণ</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {payments
+                    .filter(
+                      (p) =>
+                        p.memberId === selectedMemberStats.memberId &&
+                        p.year === selectedYear,
+                    )
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .map((p) => (
+                      <tr key={p._id}>
+                        <td className="px-4 py-2 text-gray-500">
+                          {new Date(p.date).toLocaleDateString("bn-BD")}
+                        </td>
+                        <td className="px-4 py-2 text-gray-800">
+                          {getMonthName(p.month)}
+                        </td>
+                        <td className="px-4 py-2 text-right font-medium">
+                          {fmt(p.amount)}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </Modal>
       )}
     </div>

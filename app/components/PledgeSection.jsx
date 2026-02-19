@@ -16,9 +16,7 @@ export default function PledgeSection() {
             <div className="relative aspect-video bg-gray-100 rounded-2xl overflow-hidden shadow-xl border border-gray-100">
               <div className="absolute inset-0 flex items-center justify-center text-gray-400">
                 {/* Placeholder for an image depicting unity or the village */}
-                <span className="text-sm">
-                  Image: Village Unity / Development
-                </span>
+                <img src="/10008.jpg" alt="" />
               </div>
             </div>
           </div>

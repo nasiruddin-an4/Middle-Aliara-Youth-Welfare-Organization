@@ -5,12 +5,13 @@ import { useLanguage } from "../context/LanguageContext";
 import Link from "next/link";
 
 const photos = [
-  { id: 1, type: "landscape", src: null },
-  { id: 2, type: "portrait", src: null },
-  { id: 3, type: "portrait", src: null },
-  { id: 4, type: "landscape", src: null },
-  { id: 5, type: "landscape", src: null },
-  { id: 6, type: "portrait", src: null },
+  { id: 1, type: "landscape", src: "/10008.jpg" },
+  { id: 2, type: "portrait", src: "/10009.jpg" },
+  { id: 3, type: "portrait", src: "/10010.jpg" },
+  { id: 4, type: "landscape", src: "/10011.jpg" },
+  { id: 5, type: "landscape", src: "/10012.webp" },
+  { id: 6, type: "portrait", src: "/10013.jpeg" },
+  { id: 7, type: "landscape", src: "/10008.jpg" },
 ];
 
 export default function GallerySection() {

@@ -762,9 +762,16 @@ function MembersTab({ members, onRefresh, showToast }) {
     });
 
   const openCreate = () => {
+    // Generate Unique ID
+    const maxId = members.reduce((max, m) => {
+      const id = parseInt(m.memberId) || 0;
+      return Math.max(max, id);
+    }, 0);
+    const nextId = String(maxId + 1);
+
     setEditing(null);
     setForm({
-      memberId: "",
+      memberId: nextId,
       name: "",
       mobile: "",
       country: "",

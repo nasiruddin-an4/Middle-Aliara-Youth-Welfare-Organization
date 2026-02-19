@@ -18,6 +18,7 @@ import {
   Banknote,
   PlusCircle,
   Upload,
+  Download,
   Pencil,
   Trash2,
   Search,
@@ -33,6 +34,7 @@ import {
   Star,
   XCircle,
   MessageSquare,
+  FileText,
 } from "lucide-react";
 
 // ─── Sidebar Nav Items ───
@@ -97,7 +99,7 @@ async function uploadFile(file, type = "image") {
 }
 
 // ─── Reusable Modal ───
-function Modal({ title, onClose, children }) {
+function Modal({ title, onClose, children, maxWidth = "max-w-2xl" }) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -105,7 +107,7 @@ function Modal({ title, onClose, children }) {
     >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
-        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        className={`relative bg-white rounded-2xl shadow-2xl w-full ${maxWidth} max-h-[90vh] overflow-y-auto`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
@@ -250,11 +252,10 @@ function FormCombobox({
                   setSearch(o.label);
                   setIsOpen(false);
                 }}
-                className={`px-4 py-2.5 text-sm cursor-pointer hover:bg-emerald-50 hover:text-emerald-700 transition-colors ${
-                  value === o.value
-                    ? "bg-emerald-50 text-emerald-700 font-medium"
-                    : "text-gray-700"
-                }`}
+                className={`px-4 py-2.5 text-sm cursor-pointer hover:bg-emerald-50 hover:text-emerald-700 transition-colors ${value === o.value
+                  ? "bg-emerald-50 text-emerald-700 font-medium"
+                  : "text-gray-700"
+                  }`}
               >
                 {o.label}
               </div>
@@ -378,9 +379,8 @@ export default function AdminDashboard() {
 
       {/* ═══ Sidebar ═══ */}
       <aside
-        className={`fixed lg:sticky top-0 left-0 h-screen w-[260px] bg-[#051C14] text-white flex flex-col z-50 transition-transform duration-300 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        }`}
+        className={`fixed lg:sticky top-0 left-0 h-screen w-[260px] bg-[#051C14] text-white flex flex-col z-50 transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          }`}
       >
         {/* Logo */}
         <div className="flex items-center gap-3 px-5 py-5 border-b border-white/10">
@@ -411,11 +411,10 @@ export default function AdminDashboard() {
                   setActiveTab(item.id);
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
-                  active
-                    ? "bg-emerald-500/15 text-emerald-400"
-                    : "text-gray-400 hover:bg-white/5 hover:text-white"
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${active
+                  ? "bg-emerald-500/15 text-emerald-400"
+                  : "text-gray-400 hover:bg-white/5 hover:text-white"
+                  }`}
               >
                 <Icon size={18} />
                 {item.label}
@@ -479,9 +478,8 @@ export default function AdminDashboard() {
                 </span>
                 <ChevronRight
                   size={12}
-                  className={`text-gray-400 transition-transform duration-200 ${
-                    profileOpen ? "rotate-90" : ""
-                  }`}
+                  className={`text-gray-400 transition-transform duration-200 ${profileOpen ? "rotate-90" : ""
+                    }`}
                 />
               </button>
 
@@ -889,7 +887,7 @@ function MembersTab({ members, onRefresh, showToast }) {
       } else {
         showToast(
           data.error + (data.details ? `: ${data.details}` : "") ||
-            "ত্রুটি হয়েছে",
+          "ত্রুটি হয়েছে",
           "error",
         );
       }
@@ -1191,6 +1189,7 @@ function MembersTab({ members, onRefresh, showToast }) {
 function PaymentsTab({ payments, members, onRefresh, showToast }) {
   const [showModal, setShowModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [viewing, setViewing] = useState(null);
   const [search, setSearch] = useState("");
@@ -1198,6 +1197,11 @@ function PaymentsTab({ payments, members, onRefresh, showToast }) {
     month: "all",
     year: "all",
   });
+  const [downloadFilters, setDownloadFilters] = useState({
+    month: new Date().getMonth() + 1,
+    year: new Date().getFullYear(),
+  });
+  const [downloadPreview, setDownloadPreview] = useState(null); // Preview data state
 
   const [form, setForm] = useState({
     memberId: "",
@@ -1346,6 +1350,231 @@ function PaymentsTab({ payments, members, onRefresh, showToast }) {
     } else showToast("মুছে ফেলা যায়নি", "error");
   };
 
+  const handleDownloadRequest = () => {
+    setDownloadPreview(null);
+    setShowDownloadModal(true);
+  };
+
+  // Helper to format date string for report (e.g. "2026-02-17" -> "2026/02/17")
+  const formatReportDate = (dateStr) => {
+    if (!dateStr) return "—";
+    try {
+      const parts = dateStr.split("-");
+      if (parts.length === 3) {
+        return `${parts[0]}/${parts[1]}/${parts[2]}`;
+      }
+      return dateStr;
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const generatePreview = () => {
+    const targetMonth = parseInt(downloadFilters.month);
+    const targetYear = parseInt(downloadFilters.year);
+
+    const downloadData = payments.filter(
+      (p) => p.month === targetMonth && p.year === targetYear,
+    );
+
+    if (downloadData.length === 0) {
+      showToast("এই মাসের কোনো পেমেন্ট রেকর্ড নেই", "warning");
+      return;
+    }
+
+    setDownloadPreview({
+      data: downloadData,
+      month: targetMonth,
+      year: targetYear,
+      total: downloadData.reduce((s, p) => s + p.amount, 0),
+    });
+  };
+
+  const downloadPDF = () => {
+    if (!downloadPreview) return;
+
+    showToast("PDF তৈরি হচ্ছে...", "info");
+
+    // Build table rows
+    const tableRows = downloadPreview.data
+      .map((p) => {
+        const mem = members.find((m) => m.memberId === p.memberId);
+        const dateStr = formatReportDate(p.date);
+        return `
+          <tr>
+            <td style="border:1px solid #e5e7eb;padding:8px;">
+              <div style="font-weight:600;">${mem?.name || p.memberId}</div>
+            </td>
+            <td style="border:1px solid #e5e7eb;padding:8px;">${p.source || ''}</td>
+            <td style="border:1px solid #e5e7eb;padding:8px;">${dateStr}</td>
+            <td style="border:1px solid #e5e7eb;padding:8px;text-align:right;font-weight:500;">${fmt(p.amount)}</td>
+          </tr>
+        `;
+      })
+      .join('');
+
+    // Current date for footer
+    const now = new Date();
+    const footerDate = `${now.getDate()} ${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="UTF-8">
+        <title>Payment Report - ${monthNames[downloadPreview.month - 1]} ${downloadPreview.year}</title>
+        <style>
+          @page {
+            size: A4;
+            margin: 15mm;
+          }
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          body {
+            font-family: 'Noto Sans Bengali', 'Kalpurush', 'SolaimanLipi', 'Arial Unicode MS', sans-serif;
+            color: #1f2937;
+            background: #ffffff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          .report-container {
+            width: 100%;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 24px;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #059669;
+            padding-bottom: 8px;
+          }
+          .header h1 {
+            font-size: 28px;
+            font-weight: bold;
+            color: #065f46;
+            line-height: 1.3;
+            margin-bottom: 4px;
+          }
+          .header .subtitle {
+            font-size: 14px;
+            color: #4b5563;
+          }
+          .meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 12px;
+            font-size: 14px;
+          }
+          table {
+            width: 100%;
+            font-size: 13px;
+            border-collapse: collapse;
+            margin-top: 8px;
+          }
+          thead tr {
+            background-color: #ecfdf5;
+          }
+          th {
+            border: 1px solid #e5e7eb;
+            padding: 8px;
+            text-align: left;
+            font-weight: 600;
+          }
+          th:last-child {
+            text-align: right;
+          }
+          td {
+            border: 1px solid #e5e7eb;
+            padding: 8px;
+          }
+          .total-row {
+            background-color: #f9fafb;
+            font-weight: bold;
+          }
+          .total-row td:first-child {
+            text-align: right;
+          }
+          .total-row td:last-child {
+            color: #047857;
+          }
+          .footer {
+            margin-top: 48px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            padding-top: 32px;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+          }
+          @media print {
+            body { background: #ffffff; }
+            .report-container { padding: 0; }
+            .no-print { display: none !important; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="report-container">
+          <div class="header">
+            <h1>
+              মধ্য আলীয়ারা যুব কল্যাণ সংস্থা
+            </h1>
+            <p class="subtitle">স্থাপিত: ২০২৪ | রেজিঃ নং- ১২৩৪৫</p>
+            <div class="meta-row">
+              <p><strong>রিপোর্ট:&nbsp;</strong> মাসিক পেমেন্ট তালিকা</p>
+              <p><strong>সময়কাল:&nbsp;</strong> ${monthNames[downloadPreview.month - 1]} ${downloadPreview.year}</p>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>সদস্য</th>
+                <th>মাধ্যম</th>
+                <th>তারিখ</th>
+                <th style="text-align:right;">পরিমাণ</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+              <tr class="total-row">
+                <td colspan="3" style="border:1px solid #e5e7eb;padding:8px;text-align:right;">সর্বমোট</td>
+                <td style="border:1px solid #e5e7eb;padding:8px;text-align:right;color:#047857;">${fmt(downloadPreview.total)}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="footer">
+            <p>রিপোর্ট জেনারেট: ${footerDate}</p>
+            <p>কর্তৃপক্ষ কর্তৃক অনুমোদিত</p>
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 300);
+          };
+        <\/script>
+      </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+    } else {
+      showToast("পপ-আপ ব্লক করা হয়েছে। অনুগ্রহ করে পপ-আপ অনুমতি দিন।", "error");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4">
@@ -1395,27 +1624,51 @@ function PaymentsTab({ payments, members, onRefresh, showToast }) {
             </select>
           </div>
 
-          <button
-            onClick={openCreate}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-500 transition-all shadow-md cursor-pointer whitespace-nowrap"
-          >
-            <PlusCircle size={16} />
-            নতুন পেমেন্ট
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleDownloadRequest}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-all shadow-sm cursor-pointer whitespace-nowrap"
+            >
+              <FileText size={16} />
+              রিপোর্ট (ইমেজ)
+            </button>
+            <button
+              onClick={openCreate}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-500 transition-all shadow-md cursor-pointer whitespace-nowrap"
+            >
+              <PlusCircle size={16} />
+              নতুন পেমেন্ট
+            </button>
+          </div>
         </div>
 
         {/* Total Summary Card */}
-        <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex items-center justify-between">
-          <div>
-            <p className="text-xs text-emerald-600 font-medium mb-1">
-              মোট পেমেন্ট (ফিল্টার অনুযায়ী)
-            </p>
-            <h3 className="text-2xl font-bold text-emerald-700">
-              {fmt(totalAmount)}
-            </h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex items-center justify-between">
+            <div>
+              <p className="text-xs text-emerald-600 font-medium mb-1">
+                মোট পেমেন্ট (টাকা)
+              </p>
+              <h3 className="text-2xl font-bold text-emerald-700">
+                {fmt(totalAmount)}
+              </h3>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+              <Banknote size={20} />
+            </div>
           </div>
-          <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
-            <Banknote size={20} />
+          <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-center justify-between">
+            <div>
+              <p className="text-xs text-blue-600 font-medium mb-1">
+                মোট পেমেন্ট সংখ্যা
+              </p>
+              <h3 className="text-2xl font-bold text-blue-700">
+                {filtered.length} জন
+              </h3>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+              <Users size={20} />
+            </div>
           </div>
         </div>
       </div>
@@ -1643,6 +1896,306 @@ function PaymentsTab({ payments, members, onRefresh, showToast }) {
               </button>
             </div>
           </div>
+        </Modal>
+      )}
+
+      {/* Download Modal with Preview */}
+      {showDownloadModal && (
+        <Modal
+          title={
+            downloadPreview
+              ? "রিপোর্ট প্রিভিউ (PDF)"
+              : "পেমেন্ট রিপোর্ট ডাউনলোড"
+          }
+          onClose={() => {
+            setShowDownloadModal(false);
+            setDownloadPreview(null);
+          }}
+          maxWidth={downloadPreview ? "max-w-3xl" : "max-w-2xl"}
+        >
+          {!downloadPreview ? (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-500">
+                কোন মাসের রিপোর্ট ডাউনলোড করতে চান তা নির্বাচন করুন।
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <FormSelect
+                  label="মাস"
+                  value={downloadFilters.month}
+                  onChange={(e) =>
+                    setDownloadFilters({
+                      ...downloadFilters,
+                      month: e.target.value,
+                    })
+                  }
+                  required
+                  options={monthNames.map((n, i) => ({
+                    value: i + 1,
+                    label: n,
+                  }))}
+                />
+                <FormSelect
+                  label="বছর"
+                  value={downloadFilters.year}
+                  onChange={(e) =>
+                    setDownloadFilters({
+                      ...downloadFilters,
+                      year: e.target.value,
+                    })
+                  }
+                  required
+                  options={availableYears.map((y) => ({
+                    value: y,
+                    label: y.toString(),
+                  }))}
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setShowDownloadModal(false)}
+                  className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-all cursor-pointer"
+                >
+                  বাতিল করুন
+                </button>
+                <button
+                  onClick={generatePreview}
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-500 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  style={{ backgroundColor: "#059669", color: "#ffffff" }}
+                >
+                  <FileText size={16} />
+                  রিপোর্ট তৈরি করুন
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Preview Container */}
+              {/* Preview Container */}
+              <div className="bg-gray-100/50 p-4 rounded-xl overflow-y-auto overflow-x-hidden flex justify-center border border-gray-200 relative mb-4 h-[600px]">
+                {/* Visual Scale Wrapper - Only for Preview UI */}
+                <div
+                  className="scale-50 sm:scale-75 origin-top transition-transform duration-200"
+                  style={{ height: "600px" }} // Approximate height for Preview Window
+                >
+                  <div
+                    id="report-preview"
+                    // Removed shadow-xl and p-12 class, using inline style for padding and shadow to avoid Tailwind variables
+                    style={{
+                      backgroundColor: "#ffffff",
+                      color: "#1f2937",
+                      padding: "48px",
+                      width: "210mm",
+                      minHeight: "297mm",
+                      boxShadow:
+                        "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+                    }}
+                  >
+                    {/* Header */}
+                    <div
+                      style={{
+                        textAlign: "center",
+                        marginBottom: "16px", // Reduced margin
+                        borderBottom: "2px solid #059669",
+                        paddingBottom: "8px", // Reduced padding
+                      }}
+                    >
+                      <h1
+                        style={{
+                          fontSize: "30px",
+                          fontWeight: "bold",
+                          marginBottom: "4px",
+                          color: "#065f46",
+                          lineHeight: "1.2",
+                        }}
+                      >
+                        মধ্য আলীয়ারা যুব কল্যাণ সংস্থা
+                      </h1>
+                      <p style={{ fontSize: "14px", color: "#4b5563" }}>
+                        স্থাপিত: ২০২৪ | রেজিঃ নং- ১২৩৪৫
+                      </p>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          marginTop: "12px", // Reduced margin
+                          fontSize: "14px",
+                        }}
+                      >
+                        <p>
+                          <strong>রিপোর্ট:&nbsp;</strong> মাসিক পেমেন্ট তালিকা
+                        </p>
+                        <p>
+                          <strong>সময়কাল:&nbsp;</strong>
+                          <span style={{ display: "inline-block", marginRight: "6px" }}>{monthNames[downloadPreview.month - 1]}</span>
+                          <span style={{ display: "inline-block", unicodeBidi: "isolate" }}>{String(downloadPreview.year)}</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Table */}
+                    <table
+                      style={{
+                        width: "100%",
+                        fontSize: "12px",
+                        borderCollapse: "collapse",
+                      }}
+                    >
+                      <thead>
+                        <tr style={{ backgroundColor: "#ecfdf5" }}>
+                          {/* Removed Serial No Column */}
+                          <th
+                            style={{
+                              border: "1px solid #e5e7eb",
+                              padding: "8px",
+                              textAlign: "left",
+                            }}
+                          >
+                            সদস্য
+                          </th>
+                          <th
+                            style={{
+                              border: "1px solid #e5e7eb",
+                              padding: "8px",
+                              textAlign: "left",
+                            }}
+                          >
+                            মাধ্যম
+                          </th>
+                          <th
+                            style={{
+                              border: "1px solid #e5e7eb",
+                              padding: "8px",
+                              textAlign: "left",
+                            }}
+                          >
+                            তারিখ
+                          </th>
+                          <th
+                            style={{
+                              border: "1px solid #e5e7eb",
+                              padding: "8px",
+                              textAlign: "right",
+                            }}
+                          >
+                            পরিমাণ
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {downloadPreview.data.map((p, i) => {
+                          const mem = members.find(
+                            (m) => m.memberId === p.memberId,
+                          );
+                          const cellStyle = {
+                            border: "1px solid #e5e7eb",
+                            padding: "8px",
+                          };
+                          return (
+                            <tr key={i}>
+                              <td style={cellStyle}>
+                                <div style={{ fontWeight: "600" }}>
+                                  {mem?.name}
+                                </div>
+                              </td>
+                              <td style={cellStyle}>{p.source}</td>
+                              <td style={cellStyle}>{formatReportDate(p.date)}</td>
+                              <td
+                                style={{
+                                  ...cellStyle,
+                                  textAlign: "right",
+                                  fontWeight: "500",
+                                }}
+                              >
+                                {fmt(p.amount)}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                        {/* Total Row */}
+                        <tr
+                          style={{
+                            backgroundColor: "#f9fafb",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          <td
+                            colSpan={3}
+                            style={{
+                              border: "1px solid #e5e7eb",
+                              padding: "8px",
+                              textAlign: "right",
+                            }}
+                          >
+                            সর্বমোট
+                          </td>
+                          <td
+                            style={{
+                              border: "1px solid #e5e7eb",
+                              padding: "8px",
+                              textAlign: "right",
+                              color: "#047857",
+                            }}
+                          >
+                            {fmt(downloadPreview.total)}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    {/* Footer */}
+                    <div
+                      style={{
+                        marginTop: "48px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: "12px",
+                        paddingTop: "32px",
+                        borderTop: "1px solid #e5e7eb",
+                        color: "#6b7280",
+                      }}
+                    >
+                      <p>
+                        <span>রিপোর্ট জেনারেট: </span>
+                        {(() => {
+                          const now = new Date();
+                          const d = now.getDate();
+                          const m = now.getMonth();
+                          const y = now.getFullYear();
+                          const bnMonths = ["জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"];
+                          return (
+                            <>
+                              <span style={{ display: "inline-block", marginRight: "4px" }}>{d}</span>
+                              <span style={{ display: "inline-block", marginRight: "4px" }}>{bnMonths[m]}</span>
+                              <span style={{ display: "inline-block", unicodeBidi: "isolate" }}>{y}</span>
+                            </>
+                          );
+                        })()}
+                      </p>
+                      <p>কর্তৃপক্ষ কর্তৃক অনুমোদিত</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setDownloadPreview(null)}
+                  className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-all cursor-pointer"
+                >
+                  পেছনে যান
+                </button>
+                <button
+                  onClick={downloadPDF}
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-500 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Download size={16} />
+                  PDF ডাউনলোড করুন
+                </button>
+              </div>
+            </div>
+          )}
         </Modal>
       )}
     </div>
@@ -2184,7 +2737,7 @@ function ActivitiesTab({ activities, onRefresh, showToast }) {
 
             {/* If no media */}
             {(!activity.media || activity.media.length === 0) && (
-              <div className="aspect-video bg-gradient-to-br from-emerald-50 to-emerald-100 flex items-center justify-center">
+              <div className="aspect-video bg-linear-to-br from-emerald-50 to-emerald-100 flex items-center justify-center">
                 <Activity size={40} className="text-emerald-300" />
               </div>
             )}
@@ -2196,9 +2749,8 @@ function ActivitiesTab({ activities, onRefresh, showToast }) {
                   {activity.title}
                 </h3>
                 <span
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${
-                    statusColors[activity.status] || "bg-gray-100 text-gray-600"
-                  }`}
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${statusColors[activity.status] || "bg-gray-100 text-gray-600"
+                    }`}
                 >
                   {statusLabels[activity.status] || activity.status}
                 </span>
@@ -2630,21 +3182,19 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
       <div className="bg-white p-2 rounded-xl border border-gray-100 inline-flex gap-1">
         <button
           onClick={() => setView("summary")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-            view === "summary"
-              ? "bg-emerald-50 text-emerald-700 shadow-sm"
-              : "text-gray-500 hover:bg-gray-50"
-          }`}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === "summary"
+            ? "bg-emerald-50 text-emerald-700 shadow-sm"
+            : "text-gray-500 hover:bg-gray-50"
+            }`}
         >
           সামারি রিপোর্ট
         </button>
         <button
           onClick={() => setView("expenses")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-            view === "expenses"
-              ? "bg-emerald-50 text-emerald-700 shadow-sm"
-              : "text-gray-500 hover:bg-gray-50"
-          }`}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === "expenses"
+            ? "bg-emerald-50 text-emerald-700 shadow-sm"
+            : "text-gray-500 hover:bg-gray-50"
+            }`}
         >
           খরচ ব্যবস্থাপনা
         </button>
@@ -3298,13 +3848,12 @@ function JoinRequestsTab({ requests, onRefresh, showToast }) {
                   <td className="px-6 py-4 text-gray-600">{req.address}</td>
                   <td className="px-6 py-4">
                     <span
-                      className={`px-2 py-1 rounded text-xs font-semibold ${
-                        req.status === "pending"
-                          ? "bg-amber-100 text-amber-700"
-                          : req.status === "approved"
-                            ? "bg-emerald-100 text-emerald-700"
-                            : "bg-red-100 text-red-700"
-                      }`}
+                      className={`px-2 py-1 rounded text-xs font-semibold ${req.status === "pending"
+                        ? "bg-amber-100 text-amber-700"
+                        : req.status === "approved"
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-red-100 text-red-700"
+                        }`}
                     >
                       {req.status === "pending"
                         ? "অপেক্ষমান"

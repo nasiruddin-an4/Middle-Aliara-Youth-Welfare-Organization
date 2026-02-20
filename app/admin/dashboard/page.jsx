@@ -35,6 +35,11 @@ import {
   XCircle,
   MessageSquare,
   FileText,
+  CheckCircle,
+  Mail,
+  Clock,
+  Filter,
+  XCircle as XCircleIcon,
 } from "lucide-react";
 
 // ─── Sidebar Nav Items ───
@@ -1522,7 +1527,7 @@ function PaymentsTab({ payments, members, onRefresh, showToast }) {
         <div class="report-container">
           <div class="header">
             <h1>
-              মধ্য আলীয়ারা যুব কল্যাণ সংস্থা
+              মধ্য আলীয়ারা যুব কল্যাণ সংগঠন ও প্রবাসী ঐক্য পরিষদ
             </h1>
             <p class="subtitle">স্থাপিত: ২০২৪ | রেজিঃ নং- ১২৩৪৫</p>
             <div class="meta-row">
@@ -2008,7 +2013,7 @@ function PaymentsTab({ payments, members, onRefresh, showToast }) {
                           lineHeight: "1.2",
                         }}
                       >
-                        মধ্য আলীয়ারা যুব কল্যাণ সংস্থা
+                        মধ্য আলীয়ারা যুব কল্যাণ সংগঠন ও প্রবাসী ঐক্য পরিষদ
                       </h1>
                       <p style={{ fontSize: "14px", color: "#4b5563" }}>
                         স্থাপিত: ২০২৪ | রেজিঃ নং- ১২৩৪৫
@@ -3803,34 +3808,230 @@ function MessagesTab({ messages, onRefresh, showToast }) {
 // ═══ JOIN REQUESTS TAB ══════
 // ════════════════════════════
 function JoinRequestsTab({ requests, onRefresh, showToast }) {
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [processing, setProcessing] = useState(null);
+
+  // State for status update modal
+  const [statusUpdateModal, setStatusUpdateModal] = useState(null);
+  const [emailMessage, setEmailMessage] = useState("");
+
+  const filteredRequests = useMemo(() => {
+    if (!requests) return [];
+    if (statusFilter === "all") return requests;
+    return requests.filter((r) => r.status === statusFilter);
+  }, [requests, statusFilter]);
+
+  const counts = useMemo(() => {
+    if (!requests) return { all: 0, pending: 0, approved: 0, rejected: 0 };
+    return {
+      all: requests.length,
+      pending: requests.filter((r) => r.status === "pending").length,
+      approved: requests.filter((r) => r.status === "approved").length,
+      rejected: requests.filter((r) => r.status === "rejected").length,
+    };
+  }, [requests]);
+
+  // Open modal for status change
+  const handleStatusChange = (request, status) => {
+    // If setting back to pending, no email needed usually, or simple confirm
+    if (status === "pending") {
+      updateStatus(request._id, status);
+      return;
+    }
+
+    // Set default message based on status
+    const isApproved = status === "approved";
+    const defaultMessage = isApproved
+      ? "অভিনন্দন! আপনার সদস্যপদ আবেদন অনুমোদিত হয়েছে। আমাদের পরিবারে আপনাকে স্বাগতম।"
+      : "দুঃখিত, আপনার সদস্যপদ আবেদনটি এই মুহূর্তে গৃহীত হয়নি। অনুগ্রহ করে পরবর্তীতে আবার চেষ্টা করুন।";
+
+    setEmailMessage(defaultMessage);
+    setStatusUpdateModal({ request, status });
+  };
+
+  // Execute the update
+  const handleConfirmStatusUpdate = async () => {
+    if (!statusUpdateModal) return;
+    const { request, status } = statusUpdateModal;
+
+    setProcessing(request._id);
+    try {
+      const res = await fetch(`/api/join/${request._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status, message: emailMessage }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        let toastMsg = `আবেদন ${status === "approved" ? "অনুমোদিত" : "বাতিল"} করা হয়েছে`;
+        if (data.emailSent) {
+          toastMsg += " ও ইমেইল পাঠানো হয়েছে";
+        } else if (data.emailError) {
+          toastMsg += " কিন্তু ইমেইল পাঠানো যায়নি";
+          console.error("Email error:", data.emailError);
+        }
+        showToast(toastMsg, data.emailError ? "warning" : "success");
+
+        onRefresh();
+        if (selectedRequest?._id === request._id) {
+          setSelectedRequest({ ...selectedRequest, status });
+        }
+        setStatusUpdateModal(null);
+      } else {
+        showToast(data.message || "সমস্যা হয়েছে", "error");
+      }
+    } catch {
+      showToast("সার্ভার এরর", "error");
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const updateStatus = async (id, status) => {
+    const confirmed = await confirmAction({
+      title: "নিশ্চিত করুন",
+      text: "আপনি কি এই আবেদনের স্ট্যাটাস পরিবর্তন করতে চান?",
+      confirmButtonText: "হ্যাঁ",
+    });
+    if (!confirmed) return;
+
+    setProcessing(id);
+    try {
+      const res = await fetch(`/api/join/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("স্ট্যাটাস আপডেট হয়েছে");
+        onRefresh();
+        if (selectedRequest?._id === id) {
+          setSelectedRequest({ ...selectedRequest, status });
+        }
+      } else {
+        showToast(data.message || "সমস্যা হয়েছে", "error");
+      }
+    } catch {
+      showToast("সার্ভার এরর", "error");
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    const confirmed = await confirmAction({
+      title: "আবেদন মুছে ফেলতে চান?",
+      text: "এটি ফিরিয়ে আনা যাবে না!",
+      confirmButtonText: "হ্যাঁ, মুছুন",
+    });
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`/api/join/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) {
+        showToast("আবেদন মুছে ফেলা হয়েছে");
+        onRefresh();
+        if (selectedRequest?._id === id) setSelectedRequest(null);
+      } else {
+        showToast(data.message || "মুছতে সমস্যা হয়েছে", "error");
+      }
+    } catch {
+      showToast("সার্ভার এরর", "error");
+    }
+  };
+
+  const statusTabs = [
+    { key: "all", label: "সকল", color: "text-gray-700 bg-gray-100" },
+    { key: "pending", label: "অপেক্ষমান", color: "text-amber-700 bg-amber-50" },
+    { key: "approved", label: "অনুমোদিত", color: "text-emerald-700 bg-emerald-50" },
+    { key: "rejected", label: "বাতিল", color: "text-red-700 bg-red-50" },
+  ];
+
   return (
     <div className="space-y-6 animate-slide-in">
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h3 className="font-bold text-gray-800">
-            সদস্য হওয়ার আবেদন ({requests?.length || 0})
-          </h3>
-          <button
-            onClick={onRefresh}
-            className="p-2 hover:bg-gray-50 rounded-lg"
-          >
-            <Activity size={18} className="text-gray-500" />
-          </button>
+      {/* Status Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+          <div className="flex items-center gap-2 mb-1">
+            <Users size={16} className="text-gray-400" />
+            <p className="text-gray-400 text-xs">মোট আবেদন</p>
+          </div>
+          <p className="text-2xl font-bold text-gray-800">{counts.all}</p>
         </div>
+        <div className="bg-white p-4 rounded-2xl border border-amber-100 shadow-sm">
+          <div className="flex items-center gap-2 mb-1">
+            <Clock size={16} className="text-amber-400" />
+            <p className="text-amber-500 text-xs">অপেক্ষমান</p>
+          </div>
+          <p className="text-2xl font-bold text-amber-600">{counts.pending}</p>
+        </div>
+        <div className="bg-white p-4 rounded-2xl border border-emerald-100 shadow-sm">
+          <div className="flex items-center gap-2 mb-1">
+            <CheckCircle size={16} className="text-emerald-400" />
+            <p className="text-emerald-500 text-xs">অনুমোদিত</p>
+          </div>
+          <p className="text-2xl font-bold text-emerald-600">{counts.approved}</p>
+        </div>
+        <div className="bg-white p-4 rounded-2xl border border-red-100 shadow-sm">
+          <div className="flex items-center gap-2 mb-1">
+            <XCircleIcon size={16} className="text-red-400" />
+            <p className="text-red-500 text-xs">বাতিল</p>
+          </div>
+          <p className="text-2xl font-bold text-red-600">{counts.rejected}</p>
+        </div>
+      </div>
+
+      {/* Main Table Card */}
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+          <h3 className="font-bold text-gray-800">
+            সদস্য হওয়ার আবেদন
+          </h3>
+          <div className="flex items-center gap-2">
+            {/* Status Filter Tabs */}
+            <div className="bg-gray-50 p-1 rounded-xl inline-flex gap-1">
+              {statusTabs.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setStatusFilter(tab.key)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${statusFilter === tab.key
+                    ? `${tab.color} shadow-sm`
+                    : "text-gray-400 hover:text-gray-600"
+                    }`}
+                >
+                  {tab.label}
+                  <span className="ml-1 opacity-70">({counts[tab.key]})</span>
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={onRefresh}
+              className="p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
+              title="রিফ্রেশ"
+            >
+              <Activity size={18} className="text-gray-500" />
+            </button>
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead className="bg-gray-50 text-xs uppercase text-gray-500 font-medium">
               <tr>
                 <th className="px-6 py-3">তারিখ</th>
                 <th className="px-6 py-3">নাম</th>
-                <th className="px-6 py-3">পিতার নাম</th>
                 <th className="px-6 py-3">ফোন</th>
-                <th className="px-6 py-3">ঠিকানা</th>
+                <th className="px-6 py-3">ইমেইল</th>
                 <th className="px-6 py-3">স্ট্যাটাস</th>
+                <th className="px-6 py-3 text-right">অ্যাকশন</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50 text-sm">
-              {requests?.map((req) => (
+              {filteredRequests.map((req) => (
                 <tr
                   key={req._id}
                   className="hover:bg-gray-50/50 transition-colors"
@@ -3838,17 +4039,30 @@ function JoinRequestsTab({ requests, onRefresh, showToast }) {
                   <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
                     {new Date(req.createdAt).toLocaleDateString("bn-BD")}
                   </td>
-                  <td className="px-6 py-4 font-medium text-gray-800">
-                    {req.fullName}
+                  <td className="px-6 py-4">
+                    <p className="font-medium text-gray-800">{req.fullName}</p>
+                    {req.fatherName && (
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        পিতা: {req.fatherName}
+                      </p>
+                    )}
                   </td>
-                  <td className="px-6 py-4 text-gray-600">{req.fatherName}</td>
                   <td className="px-6 py-4 text-emerald-600 font-mono">
                     {req.phone}
                   </td>
-                  <td className="px-6 py-4 text-gray-600">{req.address}</td>
+                  <td className="px-6 py-4 text-gray-500">
+                    {req.email ? (
+                      <span className="flex items-center gap-1">
+                        <Mail size={12} className="text-gray-400" />
+                        <span className="text-xs">{req.email}</span>
+                      </span>
+                    ) : (
+                      <span className="text-xs text-gray-300">-</span>
+                    )}
+                  </td>
                   <td className="px-6 py-4">
                     <span
-                      className={`px-2 py-1 rounded text-xs font-semibold ${req.status === "pending"
+                      className={`px-2.5 py-1 rounded-full text-xs font-semibold ${req.status === "pending"
                         ? "bg-amber-100 text-amber-700"
                         : req.status === "approved"
                           ? "bg-emerald-100 text-emerald-700"
@@ -3856,21 +4070,74 @@ function JoinRequestsTab({ requests, onRefresh, showToast }) {
                         }`}
                     >
                       {req.status === "pending"
-                        ? "অপেক্ষমান"
+                        ? "⏳ অপেক্ষমান"
                         : req.status === "approved"
-                          ? "অনুমোদিত"
-                          : "বাতিল"}
+                          ? "✅ অনুমোদিত"
+                          : "❌ বাতিল"}
                     </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex justify-end gap-1.5">
+                      {/* View Details */}
+                      <button
+                        onClick={() => setSelectedRequest(req)}
+                        className="p-1.5 hover:bg-blue-50 text-blue-500 rounded-lg transition-colors cursor-pointer"
+                        title="বিস্তারিত দেখুন"
+                      >
+                        <Eye size={16} />
+                      </button>
+                      {/* Approve */}
+                      {req.status !== "approved" && (
+                        <button
+                          onClick={() => handleStatusChange(req, "approved")}
+                          disabled={processing === req._id}
+                          className="p-1.5 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                          title="অনুমোদন করুন"
+                        >
+                          {processing === req._id ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            <CheckCircle size={16} />
+                          )}
+                        </button>
+                      )}
+                      {/* Reject */}
+                      {req.status !== "rejected" && (
+                        <button
+                          onClick={() => handleStatusChange(req, "rejected")}
+                          disabled={processing === req._id}
+                          className="p-1.5 hover:bg-red-50 text-red-500 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                          title="বাতিল করুন"
+                        >
+                          {processing === req._id ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            <XCircleIcon size={16} />
+                          )}
+                        </button>
+                      )}
+                      {/* Delete */}
+                      <button
+                        onClick={() => handleDelete(req._id)}
+                        className="p-1.5 hover:bg-red-50 text-red-400 rounded-lg transition-colors cursor-pointer"
+                        title="মুছে ফেলুন"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
-              {(!requests || requests.length === 0) && (
+              {filteredRequests.length === 0 && (
                 <tr>
                   <td
                     colSpan="6"
-                    className="px-6 py-8 text-center text-gray-400"
+                    className="px-6 py-12 text-center text-gray-400"
                   >
-                    কোনো আবেদন নেই
+                    <div className="flex flex-col items-center gap-2">
+                      <UserPlus size={32} className="text-gray-200" />
+                      <p>কোনো আবেদন নেই</p>
+                    </div>
                   </td>
                 </tr>
               )}
@@ -3878,6 +4145,293 @@ function JoinRequestsTab({ requests, onRefresh, showToast }) {
           </table>
         </div>
       </div>
+
+      {/* Detail Modal */}
+      {selectedRequest && (
+        <Modal
+          title="আবেদনের বিস্তারিত"
+          onClose={() => setSelectedRequest(null)}
+        >
+          <div className="space-y-5">
+            {/* Status Badge */}
+            <div className="text-center">
+              <span
+                className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-bold ${selectedRequest.status === "pending"
+                  ? "bg-amber-100 text-amber-700"
+                  : selectedRequest.status === "approved"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-red-100 text-red-700"
+                  }`}
+              >
+                {selectedRequest.status === "pending" && <Clock size={16} />}
+                {selectedRequest.status === "approved" && (
+                  <CheckCircle size={16} />
+                )}
+                {selectedRequest.status === "rejected" && (
+                  <XCircleIcon size={16} />
+                )}
+                {selectedRequest.status === "pending"
+                  ? "অপেক্ষমান"
+                  : selectedRequest.status === "approved"
+                    ? "অনুমোদিত"
+                    : "বাতিল"}
+              </span>
+            </div>
+
+            {/* Applicant Details */}
+            <div className="bg-gray-50 rounded-xl p-5 space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[11px] text-gray-400 uppercase font-medium mb-0.5">
+                    পূর্ণ নাম
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800">
+                    {selectedRequest.fullName}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-gray-400 uppercase font-medium mb-0.5">
+                    ফোন নম্বর
+                  </p>
+                  <p className="text-sm font-mono text-emerald-600">
+                    {selectedRequest.phone}
+                  </p>
+                </div>
+                {selectedRequest.fatherName && (
+                  <div>
+                    <p className="text-[11px] text-gray-400 uppercase font-medium mb-0.5">
+                      পিতার নাম
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      {selectedRequest.fatherName}
+                    </p>
+                  </div>
+                )}
+                {selectedRequest.motherName && (
+                  <div>
+                    <p className="text-[11px] text-gray-400 uppercase font-medium mb-0.5">
+                      মাতার নাম
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      {selectedRequest.motherName}
+                    </p>
+                  </div>
+                )}
+                {selectedRequest.email && (
+                  <div>
+                    <p className="text-[11px] text-gray-400 uppercase font-medium mb-0.5">
+                      ইমেইল
+                    </p>
+                    <p className="text-sm text-gray-700 flex items-center gap-1">
+                      <Mail size={13} className="text-gray-400" />
+                      {selectedRequest.email}
+                    </p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-[11px] text-gray-400 uppercase font-medium mb-0.5">
+                    ঠিকানা
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    {selectedRequest.address}
+                  </p>
+                </div>
+                {selectedRequest.profession && (
+                  <div>
+                    <p className="text-[11px] text-gray-400 uppercase font-medium mb-0.5">
+                      পেশা
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      {selectedRequest.profession}
+                    </p>
+                  </div>
+                )}
+                {selectedRequest.bloodGroup && (
+                  <div>
+                    <p className="text-[11px] text-gray-400 uppercase font-medium mb-0.5">
+                      রক্তের গ্রুপ
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      {selectedRequest.bloodGroup}
+                    </p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-[11px] text-gray-400 uppercase font-medium mb-0.5">
+                    আবেদনের তারিখ
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    {new Date(selectedRequest.createdAt).toLocaleDateString(
+                      "bn-BD",
+                      {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      },
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Email Notification Note */}
+            {selectedRequest.email && (
+              <div className="flex items-start gap-2 text-xs text-blue-600 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                <Mail size={14} className="mt-0.5 shrink-0" />
+                <p>
+                  স্ট্যাটাস পরিবর্তন করলে{" "}
+                  <strong>{selectedRequest.email}</strong>-তে স্বয়ংক্রিয়
+                  ইমেইল পাঠানো হবে।
+                </p>
+              </div>
+            )}
+            {!selectedRequest.email && (
+              <div className="flex items-start gap-2 text-xs text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-100">
+                <Mail size={14} className="mt-0.5 shrink-0" />
+                <p>
+                  আবেদনকারী ইমেইল প্রদান করেননি। স্ট্যাটাস পরিবর্তন হলে
+                  ইমেইল পাঠানো সম্ভব হবে না।
+                </p>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-2 pt-2">
+              {selectedRequest.status !== "approved" && (
+                <button
+                  onClick={() => handleStatusChange(selectedRequest, "approved")}
+                  disabled={processing === selectedRequest._id}
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
+                >
+                  {processing === selectedRequest._id ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <CheckCircle size={16} />
+                  )}
+                  অনুমোদন করুন
+                </button>
+              )}
+              {selectedRequest.status !== "rejected" && (
+                <button
+                  onClick={() => handleStatusChange(selectedRequest, "rejected")}
+                  disabled={processing === selectedRequest._id}
+                  className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
+                >
+                  {processing === selectedRequest._id ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <XCircleIcon size={16} />
+                  )}
+                  বাতিল করুন
+                </button>
+              )}
+              {selectedRequest.status !== "pending" && (
+                <button
+                  onClick={() =>
+                    handleStatusChange(selectedRequest, "pending")
+                  }
+                  disabled={processing === selectedRequest._id}
+                  className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
+                >
+                  {processing === selectedRequest._id ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Clock size={16} />
+                  )}
+                  অপেক্ষমানে ফেরান
+                </button>
+              )}
+              <button
+                onClick={() => handleDelete(selectedRequest._id)}
+                className="py-2.5 px-4 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Trash2 size={16} />
+                মুছুন
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+      {/* Email Confirmation Modal */}
+      {statusUpdateModal && (
+        <Modal
+          title={`নিশ্চিতকরণ: ${statusUpdateModal.status === "approved" ? "আবেদন অনুমোদন" : "আবেদন বাতিল"}`}
+          onClose={() => setStatusUpdateModal(null)}
+        >
+          <div className="space-y-4">
+            <div
+              className={`p-4 rounded-xl border ${statusUpdateModal.status === "approved" ? "bg-emerald-50 border-emerald-100" : "bg-red-50 border-red-100"}`}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                {statusUpdateModal.status === "approved" ? (
+                  <CheckCircle className="text-emerald-600" size={24} />
+                ) : (
+                  <XCircleIcon className="text-red-600" size={24} />
+                )}
+                <div>
+                  <p
+                    className={`font-bold ${statusUpdateModal.status === "approved" ? "text-emerald-800" : "text-red-800"}`}
+                  >
+                    আপনি কি নিশ্চিত?
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    আবেদনকারীর স্ট্যাটাস পরিবর্তন করা হবে এবং নিচের ইমেইলটি
+                    পাঠানো হবে।
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {statusUpdateModal.request.email ? (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 flex items-center justify-between">
+                  ইমেইল বার্তা (সম্পাদনাযোগ্য)
+                  <span className="text-xs font-normal text-gray-400">
+                    প্রাপক: {statusUpdateModal.request.email}
+                  </span>
+                </label>
+                <textarea
+                  value={emailMessage}
+                  onChange={(e) => setEmailMessage(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all h-32 resize-none leading-relaxed"
+                />
+                <p className="text-xs text-gray-400 text-right">
+                  এই বার্তাটি ইমেইলের মূল অংশে যুক্ত করা হবে।
+                </p>
+              </div>
+            ) : (
+              <div className="bg-amber-50 p-3 rounded-lg border border-amber-100 flex gap-2 text-amber-700 text-sm">
+                <Clock size={18} className="shrink-0" />
+                <p>
+                  সতর্কতা: আবেদনকারীর কোনো ইমেইল ঠিকানা নেই। তাই কোনো ইমেইল
+                  পাঠানো হবে না, শুধুমাত্র স্ট্যাটাস আপডেট হবে।
+                </p>
+              </div>
+            )}
+
+            <div className="pt-2 flex gap-3">
+              <button
+                onClick={() => setStatusUpdateModal(null)}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors"
+              >
+                বাতিল
+              </button>
+              <button
+                onClick={handleConfirmStatusUpdate}
+                disabled={processing === statusUpdateModal.request._id}
+                className={`flex-1 py-2.5 rounded-xl text-white font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 ${statusUpdateModal.status === "approved" ? "bg-emerald-600 hover:bg-emerald-500" : "bg-red-600 hover:bg-red-500"}`}
+              >
+                {processing === statusUpdateModal.request._id ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : (
+                  <Mail size={18} />
+                )}
+                Confirm & Send
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

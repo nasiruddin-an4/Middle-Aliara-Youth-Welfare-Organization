@@ -8,7 +8,7 @@ export async function POST(request) {
     const data = await request.json();
 
     // Quick validation
-    if (!data.name || !data.phone || !data.address) {
+    if (!data.fullName || !data.phone || !data.address) {
       return NextResponse.json(
         { success: false, message: "Required fields missing" },
         { status: 400 },

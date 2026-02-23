@@ -42,6 +42,9 @@ import {
   XCircle as XCircleIcon,
 } from "lucide-react";
 
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+
 // ─── Sidebar Nav Items ───
 const navItems = [
   { id: "dashboard", label: "ড্যাশবোর্ড", icon: LayoutDashboard },
@@ -3181,6 +3184,106 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
     }
   };
 
+  const handleDownloadInvoice = async (expense) => {
+    const invoiceSlug = `Invoice-${expense._id.substring(0, 8)}`;
+
+    // Create hidden div for invoice
+    const div = document.createElement("div");
+    div.style.position = "fixed";
+    div.style.left = "-9999px";
+    div.style.top = "0";
+    div.style.width = "800px";
+    div.style.padding = "40px";
+    div.style.backgroundColor = "white";
+    div.style.color = "black";
+    div.style.fontFamily = "inherit";
+
+    div.innerHTML = `
+      <div style="border: 2px solid #059669; padding: 30px; border-radius: 15px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #059669; margin: 0; font-size: 28px; font-weight: bold;">মধ্য আলীয়ারা যুব কল্যান সংগঠন ও প্রবাসী ঐক্য পরিষদ</h1>
+          <p style="margin: 2px 0; font-size: 14px;">স্থাপিত: ২০২৬ | রেজি নং: XXXXXX</p>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; margin-bottom: 40px; border-bottom: 1px solid #eee; padding-bottom: 20px;">
+          <div>
+            <h3 style="margin: 0 0 10px 0; color: #333;">ভাউচার / ইনভয়েস</h3>
+            <p style="margin: 2px 0; font-size: 14px;">আইডি: ${expense._id}</p>
+            <p style="margin: 2px 0; font-size: 14px;">তারিখ: ${new Date(expense.date).toLocaleDateString("bn-BD")}</p>
+          </div>
+          <div style="text-align: right;">
+            <p style="margin: 2px 0; font-size: 14px;"><strong>ক্যাটাগরি:</strong> ${expense.category}</p>
+            <p style="margin: 2px 0; font-size: 14px;"><strong>স্থান:</strong> ${expense.location || "N/A"}</p>
+          </div>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px;">
+          <thead>
+            <tr style="background-color: #f0fdf4; color: #065f46;">
+              <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">বিবরণ</th>
+              <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">পরিমাণ (জন/টি)</th>
+              <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">দর</th>
+              <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">মোট টাকা</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border: 1px solid #e5e7eb; padding: 12px;">
+                <strong>${expense.title}</strong>
+                ${expense.description ? `<p style="margin: 5px 0 0 0; font-size: 12px; color: #666;">${expense.description}</p>` : ""}
+              </td>
+              <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">${expense.numberGiven || "-"}</td>
+              <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">${expense.amountPerPerson ? fmt(expense.amountPerPerson) : "-"}</td>
+              <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right; font-weight: bold;">${fmt(expense.amount)}</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr style="background-color: #f9fafb;">
+              <td colspan="3" style="border: 1px solid #e5e7eb; padding: 12px; text-align: right; font-weight: bold;">সর্বমোট</td>
+              <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right; font-weight: bold; font-size: 18px; color: #dc2626;">${fmt(expense.amount)}</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div style="margin-top: 60px; display: flex; justify-content: space-between;">
+          <div style="text-align: center; width: 200px;">
+            <div style="border-top: 1px solid #333; padding-top: 5px;">কোষাধ্যক্ষের স্বাক্ষর</div>
+          </div>
+          <div style="text-align: center; width: 200px;">
+            <div style="border-top: 1px solid #333; padding-top: 5px;">সভাপতির স্বাক্ষর</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 40px; text-align: center; font-size: 10px; color: #999; border-top: 1px solid #eee; padding-top: 10px;">
+          Generated on ${new Date().toLocaleString("bn-BD")} | Middle Aliara Youth Welfare Organization
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(div);
+
+    try {
+      const canvas = await html2canvas(div, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`${invoiceSlug}.pdf`);
+      showToast("ইনভয়েস ডাউনলোড সফল হয়েছে");
+    } catch (error) {
+      console.error("PDF Error:", error);
+      showToast("ইনভয়েস তৈরি করতে সমস্যা হয়েছে", "error");
+    } finally {
+      document.body.removeChild(div);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Tabs */}
@@ -3512,6 +3615,13 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
                       <td className="px-6 py-3">
                         <div className="flex justify-end gap-2">
                           <button
+                            onClick={() => handleDownloadInvoice(expense)}
+                            title="ইনভয়েস ডাউনলোড"
+                            className="p-1.5 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors cursor-pointer"
+                          >
+                            <Download size={16} />
+                          </button>
+                          <button
                             onClick={() => {
                               setEditing(expense);
                               setExpenseForm({
@@ -3528,13 +3638,13 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
                               });
                               setShowModal(true);
                             }}
-                            className="p-1.5 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-colors"
+                            className="p-1.5 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-colors cursor-pointer"
                           >
                             <Pencil size={16} />
                           </button>
                           <button
                             onClick={() => handleDeleteExpense(expense._id)}
-                            className="p-1.5 hover:bg-red-50 text-red-500 rounded-lg transition-colors"
+                            className="p-1.5 hover:bg-red-50 text-red-500 rounded-lg transition-colors cursor-pointer"
                           >
                             <Trash2 size={16} />
                           </button>

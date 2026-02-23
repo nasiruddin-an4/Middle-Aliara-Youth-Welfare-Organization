@@ -3,6 +3,26 @@ import dbConnect from "@/lib/mongodb";
 import Expense from "@/lib/models/Expense";
 import { isAuthenticated, hasPermission, ROLES } from "@/lib/auth";
 
+// GET single expense (for invoice)
+export async function GET(request, { params }) {
+  try {
+    await dbConnect();
+    const { id } = await params;
+    const expense = await Expense.findById(id).lean();
+
+    if (!expense) {
+      return NextResponse.json({ error: "খরচ পাওয়া যায়নি" }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, data: expense });
+  } catch (error) {
+    return NextResponse.json(
+      { error: "খরচের ডাটা লোড করা যায়নি" },
+      { status: 500 },
+    );
+  }
+}
+
 export async function PUT(request, { params }) {
   const user = isAuthenticated(request);
   if (!user) {
@@ -13,18 +33,29 @@ export async function PUT(request, { params }) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  let body;
   try {
     await dbConnect();
-    const { id } = params;
-    const body = await request.json();
+    const { id } = await params;
+    body = await request.json();
 
-    // If date is changed, update year/month logic might be needed if not handled by pre-save on update?
-    // Mongoose pre-save validates only on save(). Update middleware is needed or manual update.
-    // Let's manually update year/month if date is provided.
+    // Normalize numeric fields
+    const numericFields = ["amount", "numberGiven", "amountPerPerson"];
+    numericFields.forEach((field) => {
+      const val = parseFloat(body[field]);
+      if (!isNaN(val)) {
+        body[field] = val;
+      }
+    });
+
     if (body.date) {
       const d = new Date(body.date);
-      body.year = d.getFullYear();
-      body.month = d.getMonth() + 1;
+      if (!isNaN(d.getTime())) {
+        body.year = d.getFullYear();
+        body.month = d.getMonth() + 1;
+      } else {
+        delete body.date;
+      }
     }
 
     const expense = await Expense.findByIdAndUpdate(id, body, {
@@ -38,8 +69,13 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json({ success: true, data: expense });
   } catch (error) {
+    console.error("Expense update error:", error);
     return NextResponse.json(
-      { error: "খরচ আপডেট করা যায়নি" },
+      {
+        error: "আপডেট এরর: " + error.message,
+        details: error.message,
+        receivedData: body,
+      },
       { status: 500 },
     );
   }
@@ -52,13 +88,12 @@ export async function DELETE(request, { params }) {
   }
 
   if (!hasPermission(user, ROLES.PAYMENT_ADMIN)) {
-    // Only full admins can delete? Or same as create? Let's say same.
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   try {
     await dbConnect();
-    const { id } = params;
+    const { id } = await params;
     const expense = await Expense.findByIdAndDelete(id);
 
     if (!expense) {

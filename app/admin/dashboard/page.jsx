@@ -1284,6 +1284,7 @@ function PaymentsTab({ payments, members, onRefresh, showToast }) {
       source: "বিকাশ",
       date: new Date().toISOString().split("T")[0],
       transactionId: "",
+      receivedBy: "",
     });
     setShowModal(true);
   };
@@ -1298,6 +1299,7 @@ function PaymentsTab({ payments, members, onRefresh, showToast }) {
       source: payment.source,
       date: payment.date || new Date().toISOString().split("T")[0],
       transactionId: payment.transactionId || "",
+      receivedBy: payment.receivedBy || "",
     });
     setShowViewModal(false);
     setShowModal(true);
@@ -1306,6 +1308,166 @@ function PaymentsTab({ payments, members, onRefresh, showToast }) {
   const openView = (payment) => {
     setViewing(payment);
     setShowViewModal(true);
+  };
+
+  const downloadReceipt = (paymentToPrint) => {
+    try {
+      const mem = members.find(
+        (m) =>
+          m.memberId === paymentToPrint.memberId ||
+          m.id === paymentToPrint.memberId,
+      );
+      const mName = mem ? mem.name : paymentToPrint.memberId;
+      const monthNameStr = monthNames[parseInt(paymentToPrint.month) - 1];
+      const canvas = document.createElement("canvas");
+      const scale = 2; // Retina quality
+      const w = 500;
+      const h = 750;
+      canvas.width = w * scale;
+      canvas.height = h * scale;
+      const ctx = canvas.getContext("2d");
+      ctx.scale(scale, scale);
+
+      // Background
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.roundRect(0, 0, w, h, 20);
+      ctx.fill();
+
+      // Header gradient
+      const headerGrad = ctx.createLinearGradient(0, 0, w, 120);
+      headerGrad.addColorStop(0, "#051C14");
+      headerGrad.addColorStop(1, "#0a3d2a");
+      ctx.fillStyle = headerGrad;
+      ctx.beginPath();
+      ctx.roundRect(0, 0, w, 140, [20, 20, 0, 0]);
+      ctx.fill();
+
+      // Header text
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 18px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(
+        "মধ্য আলীয়ারা যুব কল্যাণ সংগঠন ও প্রবাসী ঐক্য পরিষদ",
+        w / 2,
+        50,
+      );
+      ctx.font = "13px sans-serif";
+      ctx.fillStyle = "#a7f3d0";
+      ctx.fillText("কচুয়া, চাঁদপুর", w / 2, 75);
+
+      // Receipt badge
+      ctx.fillStyle = "rgba(255,255,255,0.15)";
+      ctx.beginPath();
+      ctx.roundRect(w / 2 - 60, 95, 120, 28, 14);
+      ctx.fill();
+      ctx.fillStyle = "#d1fae5";
+      ctx.font = "bold 12px sans-serif";
+      ctx.fillText("পেমেন্ট রশিদ", w / 2, 114);
+
+      // Amount section
+      ctx.fillStyle = "#f0fdf4";
+      ctx.beginPath();
+      ctx.roundRect(30, 160, w - 60, 90, 16);
+      ctx.fill();
+      ctx.strokeStyle = "#bbf7d0";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(30, 160, w - 60, 90, 16);
+      ctx.stroke();
+
+      ctx.fillStyle = "#6b7280";
+      ctx.font = "11px sans-serif";
+      ctx.fillText("প্রদত্ত পরিমাণ", w / 2, 190);
+      ctx.fillStyle = "#047857";
+      ctx.font = "bold 32px sans-serif";
+      ctx.fillText(fmt(paymentToPrint.amount), w / 2, 232);
+
+      // Details section
+      ctx.textAlign = "left";
+      const detailsStartY = 280;
+      const lineHeight = 50;
+
+      // Format report date
+      let reportDateStr = paymentToPrint.date;
+      if (reportDateStr) {
+        const d = new Date(reportDateStr);
+        reportDateStr = `${d.getDate()} ${monthNames[d.getMonth()]}, ${d.getFullYear()}`;
+      } else {
+        reportDateStr = "—";
+      }
+
+      const details = [
+        { label: "সদস্যের নাম", value: mName },
+        { label: "সদস্য আইডি", value: paymentToPrint.memberId || "—" },
+        { label: "মাস", value: `${monthNameStr}, ${paymentToPrint.year}` },
+        { label: "পেমেন্ট মাধ্যম", value: paymentToPrint.source },
+        { label: "পেমেন্ট তারিখ", value: reportDateStr },
+        {
+          label: "ট্রানজেকশন আইডি",
+          value: paymentToPrint.transactionId || "N/A",
+        },
+        { label: "গ্রহীতা", value: paymentToPrint.receivedBy || "N/A" }, // NEW
+      ];
+
+      details.forEach((d, i) => {
+        const y = detailsStartY + i * lineHeight;
+        // Row bg
+        if (i % 2 === 0) {
+          ctx.fillStyle = "#f9fafb";
+          ctx.beginPath();
+          ctx.roundRect(30, y - 5, w - 60, 40, 8);
+          ctx.fill();
+        }
+        // Label
+        ctx.fillStyle = "#9ca3af";
+        ctx.font = "12px sans-serif";
+        ctx.fillText(d.label, 50, y + 20);
+        // Value
+        ctx.fillStyle = "#1f2937";
+        ctx.font = "bold 13px sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText(d.value, w - 50, y + 20);
+        ctx.textAlign = "left";
+      });
+
+      // Status badge
+      const statusY = detailsStartY + details.length * lineHeight + 15;
+      ctx.fillStyle = "#ecfdf5";
+      ctx.beginPath();
+      ctx.roundRect(30, statusY, w - 60, 40, 10);
+      ctx.fill();
+      ctx.strokeStyle = "#a7f3d0";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(30, statusY, w - 60, 40, 10);
+      ctx.stroke();
+      ctx.fillStyle = "#059669";
+      ctx.font = "bold 14px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("✓ পরিশোধিত", w / 2, statusY + 26);
+
+      // Footer
+      ctx.fillStyle = "#d1d5db";
+      ctx.font = "10px sans-serif";
+      ctx.fillText(
+        "স্বয়ংক্রিয়ভাবে তৈরি রশিদ • মধ্য আলীয়ারা যুব কল্যাণ সংগঠন",
+        w / 2,
+        h - 20,
+      );
+
+      // Download
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `Rcp_${mName.replace(/\s+/g, "_")}_${monthNameStr}_${paymentToPrint.year}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }, "image/png");
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -1337,6 +1499,12 @@ function PaymentsTab({ payments, members, onRefresh, showToast }) {
       const data = await res.json();
       if (res.ok) {
         showToast(editing ? "পেমেন্ট আপডেট হয়েছে" : "পেমেন্ট যোগ হয়েছে");
+
+        // Auto-download receipt if it's a new payment
+        if (!editing) {
+          downloadReceipt(payload);
+        }
+
         setShowModal(false);
         onRefresh();
       } else {
@@ -1705,6 +1873,9 @@ function PaymentsTab({ payments, members, onRefresh, showToast }) {
                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">
                   মাধ্যম
                 </th>
+                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">
+                  গ্রহীতা
+                </th>
                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase hidden lg:table-cell">
                   তারিখ
                 </th>
@@ -1735,10 +1906,20 @@ function PaymentsTab({ payments, members, onRefresh, showToast }) {
                     <td className="px-4 py-3 text-gray-500 hidden md:table-cell">
                       {p.source}
                     </td>
+                    <td className="px-4 py-3 text-gray-500 hidden md:table-cell">
+                      {p.receivedBy || "—"}
+                    </td>
                     <td className="px-4 py-3 text-gray-400 text-xs hidden lg:table-cell">
                       {p.date || "—"}
                     </td>
                     <td className="px-4 py-3 flex items-center gap-2">
+                      <button
+                        onClick={() => downloadReceipt(p)}
+                        className="p-1.5 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-colors cursor-pointer"
+                        title="রশিদ ডাউনলোড করুন"
+                      >
+                        <Download size={14} />
+                      </button>
                       <button
                         onClick={() => openView(p)}
                         className="p-1.5 hover:bg-blue-50 text-blue-500 rounded-lg transition-colors cursor-pointer"
@@ -1844,6 +2025,14 @@ function PaymentsTab({ payments, members, onRefresh, showToast }) {
                 placeholder="TXN..."
               />
             </div>
+
+            <FormInput
+              label="গ্রহীতা"
+              value={form.receivedBy}
+              onChange={(e) => setForm({ ...form, receivedBy: e.target.value })}
+              placeholder="যিনি টাকা গ্রহণ করেছেন"
+              required
+            />
             <button
               type="submit"
               disabled={submitting}
@@ -1897,6 +2086,12 @@ function PaymentsTab({ payments, members, onRefresh, showToast }) {
                 <p className="text-gray-500 text-xs mb-1">ট্রানজেকশন আইডি</p>
                 <p className="font-medium text-gray-800">
                   {viewing.transactionId || "—"}
+                </p>
+              </div>
+              <div className="bg-gray-50 p-3 rounded-xl">
+                <p className="text-gray-500 text-xs mb-1">গ্রহীতা</p>
+                <p className="font-medium text-gray-800">
+                  {viewing.receivedBy || "—"}
                 </p>
               </div>
             </div>

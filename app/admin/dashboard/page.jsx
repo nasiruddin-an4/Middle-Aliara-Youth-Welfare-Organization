@@ -3439,25 +3439,34 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
   const handleDownloadInvoice = async (expense) => {
     const invoiceSlug = `Invoice-${expense._id.substring(0, 8)}`;
 
-    // Create hidden div for invoice
+    // Create temporary div for invoice
     const div = document.createElement("div");
-    div.style.position = "fixed";
-    div.style.left = "-9999px";
-    div.style.top = "0";
-    div.style.width = "800px";
-    div.style.padding = "40px";
+    // Do not use negative top/left or fixed/absolute, as html2pdf requires standard flow
+    div.style.width = "750px";
+    div.style.padding = "20px";
     div.style.backgroundColor = "white";
     div.style.color = "black";
     div.style.fontFamily = "inherit";
 
+    // Create a wrapper to hide the div visually while keeping it in the document flow
+    const wrapper = document.createElement("div");
+    wrapper.style.position = "absolute";
+    wrapper.style.left = "-9999px";
+    wrapper.style.top = "-9999px";
+    wrapper.style.pointerEvents = "none";
+    wrapper.style.opacity = "0";
+    wrapper.appendChild(div);
+    div.style.color = "black";
+    div.style.fontFamily = "inherit";
+
     div.innerHTML = `
-      <div style="border: 2px solid #059669; padding: 30px; border-radius: 15px;">
-        <div style="text-align: center; margin-bottom: 30px;">
+      <div>
+        <div style="text-align: center; margin-bottom: 10px;">
           <h1 style="color: #059669; margin: 0; font-size: 28px; font-weight: bold;">মধ্য আলীয়ারা যুব কল্যান সংগঠন ও প্রবাসী ঐক্য পরিষদ</h1>
           <p style="margin: 2px 0; font-size: 14px;">স্থাপিত: ২০২৬ | রেজি নং: XXXXXX</p>
         </div>
 
-        <div style="display: flex; justify-content: space-between; margin-bottom: 40px; border-bottom: 1px solid #eee; padding-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 2px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
           <div>
             <h3 style="margin: 0 0 10px 0; color: #333;">ভাউচার / ইনভয়েস</h3>
             <p style="margin: 2px 0; font-size: 14px;">আইডি: ${expense._id}</p>
@@ -3469,10 +3478,10 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
           </div>
         </div>
 
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px;">
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
           <thead>
-            <tr style="background-color: #f0fdf4; color: #065f46;">
-              <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">#</th>
+            <tr style="background-color: #f0fdf4; color: #065f46; page-break-inside: avoid;">
+              <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">নং</th>
               <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">বিবরণ</th>
               <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">পরিমাণ (কেজি/লিটার/জন)</th>
               <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">দর</th>
@@ -3485,7 +3494,7 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
                 ? expense.items
                     .map(
                       (it, i) => `
-                <tr>
+                <tr style="page-break-inside: avoid;">
                   <td style="border: 1px solid #e5e7eb; padding: 12px;">${i + 1}</td>
                   <td style="border: 1px solid #e5e7eb; padding: 12px;">
                     ${it.itemName}
@@ -3499,7 +3508,7 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
                     )
                     .join("")
                 : `
-                <tr>
+                <tr style="page-break-inside: avoid;">
                   <td style="border: 1px solid #e5e7eb; padding: 12px;">1</td>
                   <td style="border: 1px solid #e5e7eb; padding: 12px;">
                     <strong>${expense.title}</strong>
@@ -3513,14 +3522,14 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
             }
           </tbody>
           <tfoot>
-            <tr style="background-color: #f9fafb;">
+            <tr style="background-color: #f9fafb; page-break-inside: avoid;">
               <td colspan="4" style="border: 1px solid #e5e7eb; padding: 12px; text-align: right; font-weight: bold;">সর্বমোট</td>
               <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right; font-weight: bold; font-size: 18px; color: #dc2626;">${fmt(expense.amount)}</td>
             </tr>
           </tfoot>
         </table>
 
-        <div style="margin-top: 60px; display: flex; justify-content: space-between;">
+        <div style="margin-top: 60px; display: flex; justify-content: space-between; page-break-inside: avoid;">
           <div style="text-align: center; width: 200px;">
             <div style="border-top: 1px solid #333; padding-top: 5px;">কোষাধ্যক্ষের স্বাক্ষর</div>
           </div>
@@ -3535,27 +3544,33 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
       </div>
     `;
 
-    document.body.appendChild(div);
+    document.body.appendChild(wrapper);
 
     try {
-      const canvas = await html2canvas(div, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-      });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`${invoiceSlug}.pdf`);
-      showToast("ইনভয়েস ডাউনলোড সফল হয়েছে");
+      const html2pdf = (await import("html2pdf.js")).default;
+
+      const opt = {
+        margin: [10, 5, 10, 5], // top, right, bottom, left in mm
+        filename: `${invoiceSlug}.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+        },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        pagebreak: { mode: ["css", "avoid-all"] },
+      };
+
+      // Ensure the content is fully rendered before pdf generation
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      await html2pdf().set(opt).from(div).save();
+      showToast("ইনভয়েস ডাউনলোড সফল হয়েছে");
     } catch (error) {
       console.error("PDF Error:", error);
-      showToast("ইনভয়েস তৈরি করতে সমস্যা হয়েছে", "error");
+      showToast("ইনভয়েস তৈরি করতে সমস্যা হয়েছে", "error");
     } finally {
-      document.body.removeChild(div);
+      document.body.removeChild(wrapper);
     }
   };
 

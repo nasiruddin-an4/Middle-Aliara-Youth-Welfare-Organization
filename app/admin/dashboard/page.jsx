@@ -3474,7 +3474,7 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
             <tr style="background-color: #f0fdf4; color: #065f46;">
               <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">#</th>
               <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">বিবরণ</th>
-              <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">পরিমাণ (জন/টি)</th>
+              <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">পরিমাণ (কেজি/লিটার/জন)</th>
               <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">দর</th>
               <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">মোট টাকা</th>
             </tr>
@@ -3488,7 +3488,7 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
                 <tr>
                   <td style="border: 1px solid #e5e7eb; padding: 12px;">${i + 1}</td>
                   <td style="border: 1px solid #e5e7eb; padding: 12px;">
-                    <strong>${it.itemName}</strong>
+                    ${it.itemName}
                     ${it.description ? `<p style="margin: 5px 0 0 0; font-size: 12px; color: #666;">${it.description}</p>` : ""}
                   </td>
                   <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">${it.qty}</td>
@@ -4303,7 +4303,8 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
                           <td className="px-2 py-1.5">
                             <input
                               type="number"
-                              min="1"
+                              min="0"
+                              step="any"
                               required
                               value={item.qty}
                               onChange={(e) => {
@@ -4503,7 +4504,8 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
                           </label>
                           <input
                             type="number"
-                            min="1"
+                            min="0"
+                            step="any"
                             required
                             value={item.qty}
                             onChange={(e) => {

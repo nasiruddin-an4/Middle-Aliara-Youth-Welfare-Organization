@@ -40,6 +40,8 @@ import {
   Clock,
   Filter,
   XCircle as XCircleIcon,
+  TrendingDown,
+  Wallet,
 } from "lucide-react";
 
 import jsPDF from "jspdf";
@@ -535,6 +537,7 @@ export default function AdminDashboard() {
             <DashboardTab
               members={members}
               payments={payments}
+              expenses={expenses}
               gallery={gallery}
               activities={activities}
               messages={messages}
@@ -637,6 +640,7 @@ export default function AdminDashboard() {
 function DashboardTab({
   members,
   payments,
+  expenses,
   gallery,
   activities,
   messages,
@@ -644,6 +648,9 @@ function DashboardTab({
   onNavigate,
 }) {
   const totalPayments = payments.reduce((s, p) => s + p.amount, 0);
+  const totalExpenses = (expenses || []).reduce((s, e) => s + e.amount, 0);
+  const currentFund = totalPayments - totalExpenses;
+
   const fmt = (n) =>
     new Intl.NumberFormat("bn-BD", {
       style: "currency",
@@ -664,6 +671,20 @@ function DashboardTab({
       icon: Banknote,
       color: "blue",
       tab: "payments",
+    },
+    {
+      label: "মোট খরচ",
+      value: fmt(totalExpenses),
+      icon: TrendingDown,
+      color: "rose",
+      tab: "accounting",
+    },
+    {
+      label: "বর্তমান ব্যালেন্স",
+      value: fmt(currentFund),
+      icon: Wallet,
+      color: "teal",
+      tab: "accounting",
     },
     {
       label: "গ্যালারি ফটো",
@@ -692,6 +713,16 @@ function DashboardTab({
       icon: "bg-blue-100 text-blue-600",
       text: "text-blue-700",
     },
+    rose: {
+      bg: "bg-rose-50",
+      icon: "bg-rose-100 text-rose-600",
+      text: "text-rose-700",
+    },
+    teal: {
+      bg: "bg-teal-50",
+      icon: "bg-teal-100 text-teal-600",
+      text: "text-teal-700",
+    },
     purple: {
       bg: "bg-purple-50",
       icon: "bg-purple-100 text-purple-600",
@@ -706,7 +737,7 @@ function DashboardTab({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {stats.map((s) => {
           const Icon = s.icon;
           const c = colorMap[s.color];

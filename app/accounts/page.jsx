@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 import { useRouter } from "next/navigation";
 // import membersData from "../data/members.json";
 // import accountsData from "../data/accounts.json";
@@ -23,7 +29,13 @@ import {
   MapPin,
   CreditCard,
   Phone,
+  ArrowDownRight,
+  ArrowUpRight,
+  Minus,
+  PieChart,
+  Loader2,
 } from "lucide-react";
+import { toPng } from "html-to-image";
 
 const MONTH_NAMES = [
   "জানুয়ারি",
@@ -748,12 +760,39 @@ export default function AccountsPage() {
 
   const [members, setMembers] = useState([]);
   const [payments, setPayments] = useState([]);
+  const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Graphic download state
+  const [downloadingId, setDownloadingId] = useState(null);
+  const printRef = useRef(null);
+  const [printData, setPrintData] = useState(null);
+
+  // Define avatarColor helper correctly before using it
+  const avatarColor = useCallback((name) => {
+    const colors = [
+      "from-teal-400 to-emerald-500",
+      "from-emerald-400 to-green-500",
+      "from-cyan-400 to-blue-500",
+      "from-blue-400 to-indigo-500",
+      "from-indigo-400 to-violet-500",
+      "from-violet-400 to-purple-500",
+      "from-purple-400 to-fuchsia-500",
+      "from-fuchsia-400 to-pink-500",
+      "from-pink-400 to-rose-500",
+      "from-rose-400 to-red-500",
+    ];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [mRes, pRes] = await Promise.all([
+        const [mRes, pRes, eRes] = await Promise.all([
           fetch("/api/members", {
             cache: "no-store",
             headers: { "Cache-Control": "no-cache" },
@@ -762,11 +801,17 @@ export default function AccountsPage() {
             cache: "no-store",
             headers: { "Cache-Control": "no-cache" },
           }),
+          fetch("/api/expenses", {
+            cache: "no-store",
+            headers: { "Cache-Control": "no-cache" },
+          }),
         ]);
         const mData = await mRes.json();
         const pData = await pRes.json();
+        const eData = await eRes.json();
         if (mData.success) setMembers(mData.data || []);
         if (pData.success) setPayments(pData.data || []);
+        if (eData.success) setExpenses(eData.data || []);
       } catch (e) {
         console.error(e);
       } finally {
@@ -821,12 +866,25 @@ export default function AccountsPage() {
     () => allPayments.reduce((s, p) => s + p.amount, 0),
     [allPayments],
   );
+  const totalExpenses = useMemo(
+    () => expenses.reduce((s, e) => s + (e.amount || 0), 0),
+    [expenses],
+  );
+  const remainingBalance = totalFund - totalExpenses;
+
   const yearTotal = useMemo(
     () =>
       allPayments
         .filter((p) => p.year === selectedYear)
         .reduce((s, p) => s + p.amount, 0),
     [selectedYear, allPayments],
+  );
+  const yearExpenseTotal = useMemo(
+    () =>
+      expenses
+        .filter((e) => e.year === selectedYear)
+        .reduce((s, e) => s + (e.amount || 0), 0),
+    [selectedYear, expenses],
   );
   const monthTotal = useMemo(
     () =>
@@ -835,6 +893,24 @@ export default function AccountsPage() {
         .reduce((s, p) => s + p.amount, 0),
     [selectedYear, selectedMonth, allPayments],
   );
+  const monthExpenseTotal = useMemo(
+    () =>
+      expenses
+        .filter((e) => e.year === selectedYear && e.month === selectedMonth)
+        .reduce((s, e) => s + (e.amount || 0), 0),
+    [selectedYear, selectedMonth, expenses],
+  );
+
+  const expenseCategories = useMemo(() => {
+    const map = {};
+    expenses
+      .filter((e) => e.year === selectedYear)
+      .forEach((e) => {
+        const cat = e.category || "অন্যান্য";
+        map[cat] = (map[cat] || 0) + (e.amount || 0);
+      });
+    return Object.entries(map).sort((a, b) => b[1] - a[1]);
+  }, [expenses, selectedYear]);
 
   const paidMembersThisMonth = useMemo(
     () =>
@@ -843,9 +919,9 @@ export default function AccountsPage() {
     [paymentMap, selectedMonth, allMembers],
   );
   const unpaidMembersThisMonth = allMembers.length - paidMembersThisMonth;
-  const collectionRate = Math.round(
-    (paidMembersThisMonth / allMembers.length) * 100,
-  );
+  const collectionRate = allMembers.length
+    ? Math.round((paidMembersThisMonth / allMembers.length) * 100)
+    : 0;
 
   const memberTotals = useMemo(() => {
     const map = {};
@@ -1004,8 +1080,177 @@ export default function AccountsPage() {
     );
   }
 
+  // Define graphic generation function
+  const handleGenerateGraphic = async (
+    member,
+    total,
+    yearPaid,
+    yearPayments,
+  ) => {
+    if (downloadingId) return;
+    setDownloadingId(member._id || member.id);
+
+    // Set the data for the offscreen printable component
+    setPrintData({ member, total, yearPaid, yearPayments, year: selectedYear });
+
+    // Wait for state to apply and DOM to update
+    setTimeout(async () => {
+      try {
+        if (!printRef.current) return;
+        const graphicURL = await toPng(printRef.current, {
+          pixelRatio: 2,
+          backgroundColor: "#ffffff",
+          cacheBust: true,
+          style: {
+            transform: "none",
+          },
+        });
+
+        // Trigger download
+        const link = document.createElement("a");
+        link.download = `Account_${member.name.replace(/\s+/g, "_")}_${selectedYear}.png`;
+        link.href = graphicURL;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (err) {
+        console.error("Error generating graphic:", err);
+      } finally {
+        setDownloadingId(null);
+        setPrintData(null);
+      }
+    }, 100);
+  };
+
   return (
     <div className="min-h-screen pb-20 bg-[#f8fafb]">
+      {/* Hidden container for graphic generation */}
+      {printData && (
+        <div className="absolute top-0 left-[-9999px]">
+          <div
+            ref={printRef}
+            className="w-[600px] bg-white rounded-3xl overflow-hidden shadow-2xl relative"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at top right, #f0fdf4, #ffffff)",
+              padding: "40px",
+            }}
+          >
+            {/* Header graphic background */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl" />
+
+            <div className="relative z-10">
+              <div className="bg-emerald-600 text-white px-4 py-1.5 rounded-full inline-block font-bold text-sm shadow-md mb-4">
+                <span className="text-center text-xl">
+                  মধ্য আলীয়ারা যুব কল্যাণ সংগঠন ও প্রবাসী ঐক্য পরিষদ
+                </span>
+              </div>
+              <div className="flex justify-center items-start mb-6">
+                <div className="text-center">
+                  <h1 className="text-3xl font-black text-emerald-800 text-center">
+                    আর্থিক বিবরণী - {printData.year} সাল
+                  </h1>
+                </div>
+              </div>
+
+              {/* Profile Bar */}
+              <div className="bg-white rounded-2xl p-5 shadow-lg shadow-emerald-100 mb-8 border border-emerald-50 flex items-center gap-5">
+                <div
+                  className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${avatarColor(printData.member.name)} flex items-center justify-center text-white font-black text-3xl shrink-0 shadow-md overflow-hidden relative border-4 border-white`}
+                >
+                  {printData.member.image ? (
+                    <img
+                      src={printData.member.image}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      crossOrigin="anonymous"
+                    />
+                  ) : (
+                    printData.member.name.charAt(0)
+                  )}
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black text-gray-800 mb-1">
+                    {printData.member.name}
+                  </h2>
+                  <p className="flex items-center gap-1.5 text-gray-500 font-semibold">
+                    <MapPin size={16} className="text-emerald-500" />
+                    {printData.member.country}
+                    <span className="mx-2">•</span>
+                    ID:{" "}
+                    {printData.member.memberId || printData.member.id || "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Stats Bar */}
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-100/50">
+                  <p className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-1">
+                    {printData.year} সালের জমা
+                  </p>
+                  <p className="text-4xl font-black text-emerald-700">
+                    {fmt(printData.yearPaid)}
+                  </p>
+                </div>
+                <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
+                  <p className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-1">
+                    সর্বমোট জমা (শুরু থেকে)
+                  </p>
+                  <p className="text-4xl font-black text-gray-800">
+                    {fmt(printData.total)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Monthly Calendar */}
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 mb-6 relative overflow-hidden">
+                <h3 className="text-lg font-bold text-gray-800 mb-6">
+                  মাসিক পেমেন্ট স্ট্যাটাস ({printData.year})
+                </h3>
+                <div className="grid grid-cols-4 gap-4 relative z-10">
+                  {Array.from({ length: 12 }).map((_, i) => {
+                    const monthNum = i + 1;
+                    const p = printData.yearPayments[monthNum];
+                    const isPaid = !!p;
+                    return (
+                      <div
+                        key={i}
+                        className={`rounded-xl p-3 border-2 ${isPaid ? "border-emerald-500 bg-emerald-50/30" : "border-slate-100 bg-slate-50/50"} text-center`}
+                      >
+                        <p
+                          className={`text-xs font-bold mb-1 ${isPaid ? "text-emerald-700" : "text-slate-400"}`}
+                        >
+                          {MONTH_NAMES[i]}
+                        </p>
+                        {isPaid ? (
+                          <p className="text-sm font-black text-emerald-600">
+                            {fmt(p.amount)}
+                          </p>
+                        ) : (
+                          <div className="h-5 w-5 rounded-full border-2 border-slate-200 mx-auto" />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="text-center pt-4 border-t border-slate-100">
+                <p className="text-xs text-gray-400 font-semibold mb-1">
+                  এই রিপোর্টটি সিস্টেম থেকে স্বয়ংক্রিয়ভাবে তৈরি করা হয়েছে।
+                </p>
+                <div className="inline-flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
+                  <Shield size={12} />
+                  Verified Record
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Member Detail Modal (Desktop only) */}
       {selectedMember && (
         <MemberModal
@@ -1045,245 +1290,88 @@ export default function AccountsPage() {
       </div>
 
       <div className="mx-auto px-4 md:px-8 max-w-7xl">
-        {/* ══════ 1. Summary Stats ══════ */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 -mt-8 relative z-10 mb-10">
-          {[
-            {
-              icon: Users,
-              label: "সদস্য তালিকা",
-              value: `${allMembers.length} জন`,
-              accent: "bg-purple-500",
-              sub: "মোট সদস্য সংখ্যা",
-            },
-            {
-              icon: Wallet,
-              label: "সর্বমোট তহবিল",
-              value: fmt(totalFund),
-              accent: "bg-emerald-500",
-              sub: `${allMembers.length} জন সদস্য`,
-            },
-            {
-              icon: TrendingUp,
-              label: `${selectedYear} সালের মোট`,
-              value: fmt(yearTotal),
-              accent: "bg-blue-500",
-            },
-            {
-              icon: Calendar,
-              label: `${currentMonthName} সংগ্রহ`,
-              value: fmt(monthTotal),
-              accent: "bg-amber-500",
-              sub: `${paidMembersThisMonth}/${allMembers.length} জন`,
-            },
-            {
-              icon: BarChart3,
-              label: "সংগ্রহের হার",
-              value: `${collectionRate}%`,
-              accent: "bg-violet-500",
-              sub: `${unpaidMembersThisMonth} জন বকেয়া`,
-            },
-          ].map((card) => (
-            <div
-              key={card.label}
-              className="relative overflow-hidden bg-white rounded-2xl border border-gray-100 p-4 md:p-5 group hover:shadow-lg transition-all duration-300"
-            >
-              <div
-                className={`absolute -top-6 -right-6 w-20 h-20 rounded-full ${card.accent} opacity-20 group-hover:scale-125 transition-transform duration-500`}
-              />
-              <div className="relative">
-                <div className="flex items-center gap-2.5 mb-2">
-                  <div
-                    className={`w-9 h-9 rounded-xl ${card.accent} flex items-center justify-center`}
-                  >
-                    <card.icon size={18} className="text-white" />
-                  </div>
-                  <span className="text-[10px] md:text-xs font-semibold text-gray-400 uppercase tracking-wide leading-tight">
-                    {card.label}
-                  </span>
+        {/* ══════ 1. Financial Overview (3 big cards) ══════ */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 -mt-8 relative z-10 mb-6">
+          {/* Total Income */}
+          <div className="relative overflow-hidden bg-white rounded-2xl border border-emerald-100 p-5 md:p-6 group hover:shadow-xl transition-all duration-300">
+            <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-emerald-500 opacity-10 group-hover:scale-125 transition-transform duration-500" />
+            <div className="relative">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-200">
+                  <ArrowDownRight size={20} className="text-white" />
                 </div>
-                <p className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">
-                  {card.value}
-                </p>
-                {card.sub && (
-                  <p className="text-[10px] md:text-xs text-gray-400 mt-0.5">
-                    {card.sub}
-                  </p>
-                )}
+                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                  আয়
+                </span>
               </div>
+              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
+                সর্বমোট আয়
+              </p>
+              <p className="text-2xl md:text-3xl font-bold text-gray-900">
+                {fmt(totalFund)}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                {allMembers.length} জন সদস্য থেকে
+              </p>
             </div>
-          ))}
-        </div>
+          </div>
 
-        {/* ══════ 2. Year / Month Selectors ══════ */}
-        <div className="flex flex-wrap items-end gap-3 mb-10">
-          <div>
-            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 pl-1">
-              বছর
-            </label>
+          {/* Total Expenses */}
+          <div className="relative overflow-hidden bg-white rounded-2xl border border-red-100 p-5 md:p-6 group hover:shadow-xl transition-all duration-300">
+            <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-red-500 opacity-10 group-hover:scale-125 transition-transform duration-500" />
             <div className="relative">
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(Number(e.target.value))}
-                className="appearance-none bg-white border border-gray-200 rounded-xl pl-4 pr-9 py-2.5 text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all cursor-pointer shadow-sm"
-              >
-                {availableYears.map((y) => (
-                  <option key={y} value={y}>
-                    {y}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                size={14}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 pl-1">
-              মাস
-            </label>
-            <div className="relative">
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                className="appearance-none bg-white border border-gray-200 rounded-xl pl-4 pr-9 py-2.5 text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all cursor-pointer shadow-sm"
-              >
-                {MONTH_NAMES.map((name, i) => (
-                  <option key={i} value={i + 1}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                size={14}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* ══════ 4. This Month's Payment Status ══════ */}
-        <div className="mb-10">
-          <SectionHeader
-            icon={Calendar}
-            title={`${currentMonthName}, ${selectedYear} — সদস্যভিত্তিক অবদান`}
-            subtitle={`মোট ৳${monthTotal.toLocaleString("bn-BD")} সংগ্রহ হয়েছে`}
-            color="text-amber-500"
-          />
-
-          {/* Payment / Unpaid / Total mini-stats */}
-          <div className="grid grid-cols-3 gap-3 mb-5">
-            <div className="bg-emerald-50 rounded-xl border border-emerald-100 p-3 md:p-4 text-center">
-              <p className="text-xl md:text-2xl font-bold text-emerald-700">
-                {paidMembersThisMonth}
-              </p>
-              <p className="text-[14px] text-emerald-600/70 font-semibold">
-                পরিশোধিত
-              </p>
-            </div>
-            <div className="bg-red-50 rounded-xl border border-red-100 p-3 md:p-4 text-center">
-              <p className="text-xl md:text-2xl font-bold text-red-500">
-                {unpaidMembersThisMonth}
-              </p>
-              <p className="text-[14px] text-red-400/70 font-semibold">
-                বকেয়া
-              </p>
-            </div>
-            <div className="bg-blue-50 rounded-xl border border-blue-100 p-3 md:p-4 text-center">
-              <p className="text-xl md:text-2xl font-bold text-blue-700">
-                {fmt(monthTotal)}
-              </p>
-              <p className="text-[14px] text-blue-600/70 font-semibold">
-                মোট সংগ্রহ
-              </p>
-            </div>
-          </div>
-
-          {/* Member cards for this month */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-            {monthContributions.map((item, index) => {
-              const st = SOURCE_STYLES[item.source] || SOURCE_STYLES["বকেয়া"];
-              const paid = item.amount > 0;
-              return (
-                <div
-                  key={item._id || item.id || index}
-                  className={`bg-white rounded-2xl border p-3.5 md:p-4 transition-all duration-300 group hover:shadow-lg ${
-                    paid ? "border-emerald-100" : "border-gray-100"
-                  }`}
-                >
-                  {/* Serial + Avatar + Status */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`w-10 h-10 md:w-11 md:h-11 rounded-xl bg-linear-to-br ${avatarColor(item.name)} flex items-center justify-center text-white font-bold text-base shrink-0 overflow-hidden`}
-                      >
-                        {item.image ? (
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.target.style.display = "none";
-                              e.target.nextSibling.style.display = "flex";
-                            }}
-                          />
-                        ) : null}
-                        <span
-                          style={{ display: item.image ? "none" : "flex" }}
-                          className="w-full h-full items-center justify-center"
-                        >
-                          {item.name.charAt(0)}
-                        </span>
-                      </div>
-                    </div>
-                    <span
-                      className={`inline-flex items-center gap-1 text-[9px] md:text-[12px] font-bold px-2 py-0.5 rounded-lg ${
-                        paid
-                          ? "bg-emerald-50 text-emerald-600"
-                          : "bg-red-50 text-red-400"
-                      }`}
-                    >
-                      {paid ? "✓" : "✗"} {paid ? "পরিশোধিত" : "বকেয়া"}
-                    </span>
-                  </div>
-
-                  {/* Name */}
-                  <h4 className="text-sm font-bold text-gray-800 truncate mb-0.5">
-                    {item.name}
-                  </h4>
-                  <p className="text-[10px] text-gray-400 flex items-center gap-1 mb-3">
-                    <MapPin size={9} />
-                    {item.country}
-                  </p>
-
-                  {/* Amount + Source + View Details */}
-                  <div className="flex items-center justify-between mb-3">
-                    <span
-                      className={`text-base md:text-lg font-bold ${paid ? "text-emerald-600" : "text-gray-300"}`}
-                    >
-                      {paid ? fmt(item.amount) : "৳০"}
-                    </span>
-                    {paid && (
-                      <span
-                        className={`inline-flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${st.bg} ${st.text}`}
-                      >
-                        <span className={`w-1 h-1 rounded-full ${st.dot}`} />
-                        {item.source}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex justify-center">
-                    <button
-                      onClick={() => setSelectedPaymentMember(item)}
-                      className="cursor-pointer px-8 py-1 rounded-md border border-gray-200 text-[10px] font-semibold text-gray-500 hover:border-emerald-400 hover:text-emerald-600 hover:bg-emerald-50/50 transition-all duration-200"
-                    >
-                      বিস্তারিত দেখুন
-                    </button>
-                  </div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg shadow-red-200">
+                  <ArrowUpRight size={20} className="text-white" />
                 </div>
-              );
-            })}
+                <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                  ব্যয়
+                </span>
+              </div>
+              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
+                সর্বমোট খরচ
+              </p>
+              <p className="text-2xl md:text-3xl font-bold text-gray-900">
+                {fmt(totalExpenses)}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                {expenses.length}টি খরচ রেকর্ড
+              </p>
+            </div>
+          </div>
+
+          {/* Remaining Balance */}
+          <div
+            className={`relative overflow-hidden bg-white rounded-2xl border ${remainingBalance >= 0 ? "border-blue-100" : "border-orange-100"} p-5 md:p-6 group hover:shadow-xl transition-all duration-300`}
+          >
+            <div
+              className={`absolute -top-8 -right-8 w-28 h-28 rounded-full ${remainingBalance >= 0 ? "bg-blue-500" : "bg-orange-500"} opacity-10 group-hover:scale-125 transition-transform duration-500`}
+            />
+            <div className="relative">
+              <div className="flex items-center justify-between mb-3">
+                <div
+                  className={`w-11 h-11 rounded-xl bg-gradient-to-br ${remainingBalance >= 0 ? "from-blue-500 to-indigo-600 shadow-blue-200" : "from-orange-500 to-red-600 shadow-orange-200"} flex items-center justify-center shadow-lg`}
+                >
+                  <Wallet size={20} className="text-white" />
+                </div>
+                <span
+                  className={`text-[10px] font-bold ${remainingBalance >= 0 ? "text-blue-600 bg-blue-50" : "text-orange-600 bg-orange-50"} px-2.5 py-1 rounded-full uppercase tracking-wider`}
+                >
+                  ব্যালেন্স
+                </span>
+              </div>
+              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
+                অবশিষ্ট তহবিল
+              </p>
+              <p
+                className={`text-2xl md:text-3xl font-bold ${remainingBalance >= 0 ? "text-gray-900" : "text-orange-600"}`}
+              >
+                {fmt(remainingBalance)}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                {remainingBalance >= 0 ? "সুরক্ষিত তহবিল" : "ঘাটতি রয়েছে"}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -1296,53 +1384,101 @@ export default function AccountsPage() {
             color="text-emerald-500"
           />
 
-          {/* Search + Filters */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-4 shadow-sm">
-            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-              <div className="relative w-full sm:w-72">
+          {/* Search + Filters + Year/Month */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-6 shadow-sm">
+            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+              {/* Search Box */}
+              <div className="relative w-full lg:w-96 shrink-0">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-4 w-4 text-gray-400" />
+                  <Search className="h-4 w-4 text-emerald-500" />
                 </div>
                 <input
                   type="text"
-                  placeholder="সদস্য বা দেশ খুঁজুন..."
-                  className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                  placeholder="সদস্যের নাম বা দেশ খুঁজুন..."
+                  className="block w-full pl-10 pr-3 py-3 border-2 border-slate-100 rounded-xl text-sm bg-slate-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 focus:bg-white transition-all font-medium"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                {PAYMENT_SOURCES.map((source) => {
-                  const active = selectedSource === source;
-                  const st = SOURCE_STYLES[source];
-                  return (
-                    <button
-                      key={source}
-                      onClick={() => setSelectedSource(active ? "সব" : source)}
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition-all ${active ? `${st.bg} ${st.text} ${st.border}` : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"}`}
+
+              {/* Filters */}
+              <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-100 flex-wrap">
+                  {PAYMENT_SOURCES.map((source) => {
+                    const active = selectedSource === source;
+                    const st = SOURCE_STYLES[source];
+                    return (
+                      <button
+                        key={source}
+                        onClick={() =>
+                          setSelectedSource(active ? "সব" : source)
+                        }
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 ${active ? `${st.bg} ${st.text} shadow-sm` : "text-gray-500 hover:bg-white hover:text-gray-700 hover:shadow-sm"}`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${active ? st.dot : "bg-gray-300"}`}
+                        />
+                        {source}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="h-8 w-px bg-gray-200 hidden xl:block" />
+
+                {/* Year / Month / Sort selectors in line */}
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <select
+                      value={selectedYear}
+                      onChange={(e) => setSelectedYear(Number(e.target.value))}
+                      className="appearance-none bg-white border-2 border-slate-100 rounded-xl pl-3 pr-8 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:border-emerald-500 cursor-pointer hover:bg-slate-50 transition-colors"
                     >
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full ${active ? st.dot : "bg-gray-300"}`}
-                      />
-                      {source}
-                    </button>
-                  );
-                })}
-                <div className="h-5 w-px bg-gray-200 hidden sm:block" />
-                <div className="relative">
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="appearance-none bg-gray-50 border border-gray-200 rounded-lg pl-2.5 pr-7 py-1.5 text-[11px] font-medium text-gray-600 focus:outline-none cursor-pointer"
-                  >
-                    <option value="name">নাম</option>
-                    <option value="total">মোট</option>
-                    <option value="status">স্ট্যাটাস</option>
-                  </select>
-                  <ChevronDown
-                    size={12}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                  />
+                      {availableYears.map((y) => (
+                        <option key={y} value={y}>
+                          {y}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      size={14}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <select
+                      value={selectedMonth}
+                      onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                      className="appearance-none bg-white border-2 border-slate-100 rounded-xl pl-3 pr-8 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:border-emerald-500 cursor-pointer hover:bg-slate-50 transition-colors"
+                    >
+                      {MONTH_NAMES.map((name, i) => (
+                        <option key={i} value={i + 1}>
+                          {name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      size={14}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="appearance-none bg-white border-2 border-slate-100 rounded-xl pl-3 pr-8 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:border-emerald-500 cursor-pointer hover:bg-slate-50 transition-colors"
+                    >
+                      <option value="name">নাম</option>
+                      <option value="total">মোট</option>
+                      <option value="status">স্ট্যাটাস</option>
+                    </select>
+                    <ChevronDown
+                      size={14}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -1397,65 +1533,97 @@ export default function AccountsPage() {
                   </div>
 
                   {/* Name + Country */}
-                  <h4 className="text-sm font-bold text-gray-800 truncate mb-0.5">
+                  <h4 className="text-sm font-bold text-gray-900 mb-0.5 truncate">
                     {member.name}
                   </h4>
-                  <p className="text-[10px] text-gray-400 flex items-center gap-1 mb-3">
-                    <MapPin size={9} />
+                  <p className="text-[10px] sm:text-[11px] text-gray-500 flex items-center gap-1 mb-4 font-medium">
+                    <MapPin size={10} className="text-emerald-500" />
                     {member.country}
                   </p>
 
-                  {/* Stats */}
-                  <div className="grid grid-cols-3 gap-1.5 mb-3">
-                    <div className="bg-gray-50 rounded-lg p-1.5 md:p-2 text-center">
-                      <p className="text-[11px] md:text-xs font-bold text-gray-800">
-                        {fmt(mTotal)}
-                      </p>
-                      <p className="text-[8px] md:text-[9px] text-gray-400">
-                        সর্বমোট
-                      </p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-1.5 md:p-2 text-center">
-                      <p className="text-[11px] md:text-xs font-bold text-blue-600">
-                        {fmt(yearPaid)}
-                      </p>
-                      <p className="text-[8px] md:text-[9px] text-gray-400">
-                        {selectedYear}
-                      </p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-1.5 md:p-2 text-center">
-                      <p className="text-[11px] md:text-xs font-bold text-violet-600">
-                        {monthsPaid}/১২
-                      </p>
-                      <p className="text-[8px] md:text-[9px] text-gray-400">
-                        মাস
-                      </p>
+                  {/* Highlighted Stats Block */}
+                  <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 mb-4">
+                    <div className="grid grid-cols-3 gap-2 divide-x divide-slate-200">
+                      <div className="text-center">
+                        <p className="text-[10px] text-gray-400 font-semibold mb-0.5 uppercase tracking-wider">
+                          সর্বমোট
+                        </p>
+                        <p className="text-xs sm:text-sm font-black text-gray-800">
+                          {fmt(mTotal)}
+                        </p>
+                      </div>
+                      <div className="text-center px-2">
+                        <p className="text-[10px] text-gray-400 font-semibold mb-0.5 uppercase tracking-wider">
+                          {selectedYear}
+                        </p>
+                        <p className="text-xs sm:text-sm font-black text-emerald-600">
+                          {fmt(yearPaid)}
+                        </p>
+                      </div>
+                      <div className="text-center pl-2">
+                        <p className="text-[10px] text-gray-400 font-semibold mb-0.5 uppercase tracking-wider">
+                          মাস
+                        </p>
+                        <p className="text-xs sm:text-sm font-black text-violet-600">
+                          {monthsPaid}/<span className="text-xs">১২</span>
+                        </p>
+                      </div>
                     </div>
                   </div>
 
                   {/* Monthly Status Grid */}
-                  <div className="grid grid-cols-12 gap-0.5 mb-4 px-1">
-                    {Array.from({ length: 12 }).map((_, i) => {
-                      const monthNum = i + 1;
-                      const p = yearPayments[monthNum];
-                      const isPaid = !!p;
-                      return (
-                        <div
-                          key={i}
-                          className={`h-3 rounded-sm ${isPaid ? "bg-emerald-500" : "bg-gray-100"}`}
-                          title={`${MONTH_SHORT[i]}: ${isPaid ? fmt(p.amount) : "বকেয়া"}`}
-                        />
-                      );
-                    })}
+                  <div className="mb-5">
+                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider mb-2">
+                      মাসিক পেমেন্ট স্ট্যাটাস ({selectedYear})
+                    </p>
+                    <div className="flex w-full gap-0.5">
+                      {Array.from({ length: 12 }).map((_, i) => {
+                        const monthNum = i + 1;
+                        const p = yearPayments[monthNum];
+                        const isPaid = !!p;
+                        return (
+                          <div
+                            key={i}
+                            className={`flex-1 h-2 sm:h-2.5 rounded-full ${isPaid ? "bg-emerald-500 shadow-sm" : "bg-slate-200"}`}
+                            title={`${MONTH_SHORT[i]}: ${isPaid ? fmt(p.amount) : "বকেয়া"}`}
+                          />
+                        );
+                      })}
+                    </div>
                   </div>
 
-                  {/* View Details Button */}
-                  <button
-                    onClick={() => handleMemberClick(member)}
-                    className="w-full cursor-pointer py-1.5 rounded-lg border border-gray-200 text-[11px] font-semibold text-gray-500 hover:border-emerald-400 hover:text-emerald-600 hover:bg-emerald-50/50 transition-all duration-200"
-                  >
-                    বিস্তারিত দেখুন
-                  </button>
+                  {/* Action Buttons */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleMemberClick(member)}
+                      className="flex-1 cursor-pointer py-2 rounded-xl border-2 border-slate-100 text-xs font-bold text-gray-600 hover:border-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 transition-all duration-200"
+                    >
+                      বিস্তারিত দেখুন
+                    </button>
+                    <button
+                      onClick={() =>
+                        handleGenerateGraphic(
+                          member,
+                          mTotal,
+                          yearPaid,
+                          yearPayments,
+                        )
+                      }
+                      disabled={downloadingId === (member._id || member.id)}
+                      className={`cursor-pointer w-10 h-10 flex items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed`}
+                      title="অ্যাকাউন্টিং রিপোর্ট ডাউনলোড করুন"
+                    >
+                      {downloadingId === (member._id || member.id) ? (
+                        <Loader2
+                          size={14}
+                          className="animate-spin"
+                          strokeWidth={2.5}
+                        />
+                      ) : (
+                        <Download size={14} strokeWidth={2.5} />
+                      )}
+                    </button>
+                  </div>
                 </div>
               );
             })}

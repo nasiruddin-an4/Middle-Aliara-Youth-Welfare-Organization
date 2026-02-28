@@ -51,6 +51,22 @@ export async function POST(request) {
       body[field] = !isNaN(val) ? val : 0;
     });
 
+    // Normalize items array if present
+    if (body.items && Array.isArray(body.items)) {
+      body.items = body.items.map((item) => ({
+        itemName: item.itemName || "",
+        qty: parseFloat(item.qty) || 1,
+        description: item.description || "",
+        unitPrice: parseFloat(item.unitPrice) || 0,
+      }));
+      // Recalculate total from items
+      const itemsTotal = body.items.reduce(
+        (sum, it) => sum + it.qty * it.unitPrice,
+        0,
+      );
+      if (itemsTotal > 0) body.amount = itemsTotal;
+    }
+
     // Explicit validation for required fields
     const missing = ["title", "category"].filter((f) => !body[f]?.trim());
     // Note: amount is handled by normalization above (will be at least 0)

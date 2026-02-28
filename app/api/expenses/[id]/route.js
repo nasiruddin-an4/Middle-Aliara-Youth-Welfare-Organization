@@ -48,6 +48,22 @@ export async function PUT(request, { params }) {
       }
     });
 
+    // Normalize items array if present
+    if (body.items && Array.isArray(body.items)) {
+      body.items = body.items.map((item) => ({
+        itemName: item.itemName || "",
+        qty: parseFloat(item.qty) || 1,
+        description: item.description || "",
+        unitPrice: parseFloat(item.unitPrice) || 0,
+      }));
+      // Recalculate total from items
+      const itemsTotal = body.items.reduce(
+        (sum, it) => sum + it.qty * it.unitPrice,
+        0,
+      );
+      if (itemsTotal > 0) body.amount = itemsTotal;
+    }
+
     if (body.date) {
       const d = new Date(body.date);
       if (!isNaN(d.getTime())) {

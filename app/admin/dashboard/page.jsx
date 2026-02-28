@@ -260,10 +260,11 @@ function FormCombobox({
                   setSearch(o.label);
                   setIsOpen(false);
                 }}
-                className={`px-4 py-2.5 text-sm cursor-pointer hover:bg-emerald-50 hover:text-emerald-700 transition-colors ${value === o.value
-                  ? "bg-emerald-50 text-emerald-700 font-medium"
-                  : "text-gray-700"
-                  }`}
+                className={`px-4 py-2.5 text-sm cursor-pointer hover:bg-emerald-50 hover:text-emerald-700 transition-colors ${
+                  value === o.value
+                    ? "bg-emerald-50 text-emerald-700 font-medium"
+                    : "text-gray-700"
+                }`}
               >
                 {o.label}
               </div>
@@ -387,8 +388,9 @@ export default function AdminDashboard() {
 
       {/* ═══ Sidebar ═══ */}
       <aside
-        className={`fixed lg:sticky top-0 left-0 h-screen w-[260px] bg-[#051C14] text-white flex flex-col z-50 transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-          }`}
+        className={`fixed lg:sticky top-0 left-0 h-screen w-[260px] bg-[#051C14] text-white flex flex-col z-50 transition-transform duration-300 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        }`}
       >
         {/* Logo */}
         <div className="flex items-center gap-3 px-5 py-5 border-b border-white/10">
@@ -419,10 +421,11 @@ export default function AdminDashboard() {
                   setActiveTab(item.id);
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${active
-                  ? "bg-emerald-500/15 text-emerald-400"
-                  : "text-gray-400 hover:bg-white/5 hover:text-white"
-                  }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
+                  active
+                    ? "bg-emerald-500/15 text-emerald-400"
+                    : "text-gray-400 hover:bg-white/5 hover:text-white"
+                }`}
               >
                 <Icon size={18} />
                 {item.label}
@@ -486,8 +489,9 @@ export default function AdminDashboard() {
                 </span>
                 <ChevronRight
                   size={12}
-                  className={`text-gray-400 transition-transform duration-200 ${profileOpen ? "rotate-90" : ""
-                    }`}
+                  className={`text-gray-400 transition-transform duration-200 ${
+                    profileOpen ? "rotate-90" : ""
+                  }`}
                 />
               </button>
 
@@ -895,7 +899,7 @@ function MembersTab({ members, onRefresh, showToast }) {
       } else {
         showToast(
           data.error + (data.details ? `: ${data.details}` : "") ||
-          "ত্রুটি হয়েছে",
+            "ত্রুটি হয়েছে",
           "error",
         );
       }
@@ -1413,13 +1417,13 @@ function PaymentsTab({ payments, members, onRefresh, showToast }) {
             <td style="border:1px solid #e5e7eb;padding:8px;">
               <div style="font-weight:600;">${mem?.name || p.memberId}</div>
             </td>
-            <td style="border:1px solid #e5e7eb;padding:8px;">${p.source || ''}</td>
+            <td style="border:1px solid #e5e7eb;padding:8px;">${p.source || ""}</td>
             <td style="border:1px solid #e5e7eb;padding:8px;">${dateStr}</td>
             <td style="border:1px solid #e5e7eb;padding:8px;text-align:right;font-weight:500;">${fmt(p.amount)}</td>
           </tr>
         `;
       })
-      .join('');
+      .join("");
 
     // Current date for footer
     const now = new Date();
@@ -1574,12 +1578,15 @@ function PaymentsTab({ payments, members, onRefresh, showToast }) {
       </html>
     `;
 
-    const printWindow = window.open('', '_blank');
+    const printWindow = window.open("", "_blank");
     if (printWindow) {
       printWindow.document.write(htmlContent);
       printWindow.document.close();
     } else {
-      showToast("পপ-আপ ব্লক করা হয়েছে। অনুগ্রহ করে পপ-আপ অনুমতি দিন।", "error");
+      showToast(
+        "পপ-আপ ব্লক করা হয়েছে। অনুগ্রহ করে পপ-আপ অনুমতি দিন।",
+        "error",
+      );
     }
   };
 
@@ -2035,8 +2042,22 @@ function PaymentsTab({ payments, members, onRefresh, showToast }) {
                         </p>
                         <p>
                           <strong>সময়কাল:&nbsp;</strong>
-                          <span style={{ display: "inline-block", marginRight: "6px" }}>{monthNames[downloadPreview.month - 1]}</span>
-                          <span style={{ display: "inline-block", unicodeBidi: "isolate" }}>{String(downloadPreview.year)}</span>
+                          <span
+                            style={{
+                              display: "inline-block",
+                              marginRight: "6px",
+                            }}
+                          >
+                            {monthNames[downloadPreview.month - 1]}
+                          </span>
+                          <span
+                            style={{
+                              display: "inline-block",
+                              unicodeBidi: "isolate",
+                            }}
+                          >
+                            {String(downloadPreview.year)}
+                          </span>
                         </p>
                       </div>
                     </div>
@@ -2107,7 +2128,9 @@ function PaymentsTab({ payments, members, onRefresh, showToast }) {
                                 </div>
                               </td>
                               <td style={cellStyle}>{p.source}</td>
-                              <td style={cellStyle}>{formatReportDate(p.date)}</td>
+                              <td style={cellStyle}>
+                                {formatReportDate(p.date)}
+                              </td>
                               <td
                                 style={{
                                   ...cellStyle,
@@ -2170,12 +2193,46 @@ function PaymentsTab({ payments, members, onRefresh, showToast }) {
                           const d = now.getDate();
                           const m = now.getMonth();
                           const y = now.getFullYear();
-                          const bnMonths = ["জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"];
+                          const bnMonths = [
+                            "জানুয়ারি",
+                            "ফেব্রুয়ারি",
+                            "মার্চ",
+                            "এপ্রিল",
+                            "মে",
+                            "জুন",
+                            "জুলাই",
+                            "আগস্ট",
+                            "সেপ্টেম্বর",
+                            "অক্টোবর",
+                            "নভেম্বর",
+                            "ডিসেম্বর",
+                          ];
                           return (
                             <>
-                              <span style={{ display: "inline-block", marginRight: "4px" }}>{d}</span>
-                              <span style={{ display: "inline-block", marginRight: "4px" }}>{bnMonths[m]}</span>
-                              <span style={{ display: "inline-block", unicodeBidi: "isolate" }}>{y}</span>
+                              <span
+                                style={{
+                                  display: "inline-block",
+                                  marginRight: "4px",
+                                }}
+                              >
+                                {d}
+                              </span>
+                              <span
+                                style={{
+                                  display: "inline-block",
+                                  marginRight: "4px",
+                                }}
+                              >
+                                {bnMonths[m]}
+                              </span>
+                              <span
+                                style={{
+                                  display: "inline-block",
+                                  unicodeBidi: "isolate",
+                                }}
+                              >
+                                {y}
+                              </span>
                             </>
                           );
                         })()}
@@ -2757,8 +2814,9 @@ function ActivitiesTab({ activities, onRefresh, showToast }) {
                   {activity.title}
                 </h3>
                 <span
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${statusColors[activity.status] || "bg-gray-100 text-gray-600"
-                    }`}
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${
+                    statusColors[activity.status] || "bg-gray-100 text-gray-600"
+                  }`}
                 >
                   {statusLabels[activity.status] || activity.status}
                 </span>
@@ -2998,9 +3056,8 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
     category: "",
     date: new Date().toISOString().split("T")[0],
     description: "",
-    numberGiven: "",
-    amountPerPerson: "",
     location: "",
+    items: [{ itemName: "", qty: 1, description: "", unitPrice: "" }],
   });
 
   // Filters State
@@ -3201,13 +3258,13 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
     div.innerHTML = `
       <div style="border: 2px solid #059669; padding: 30px; border-radius: 15px;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #059669; margin: 0; font-size: 28px; font-weight: bold;">মধ্য আলীয়ারা যুব কল্যান সংগঠন ও প্রবাসী ঐক্য পরিষদ</h1>
+          <h1 style="color: #059669; margin: 0; font-size: 28px; font-weight: bold;">মধ্য আলীয়ারা যুব কল্যান সংগঠন ও প্রবাসী ঐক্য পরিষদ</h1>
           <p style="margin: 2px 0; font-size: 14px;">স্থাপিত: ২০২৬ | রেজি নং: XXXXXX</p>
         </div>
 
         <div style="display: flex; justify-content: space-between; margin-bottom: 40px; border-bottom: 1px solid #eee; padding-bottom: 20px;">
           <div>
-            <h3 style="margin: 0 0 10px 0; color: #333;">ভাউচার / ইনভয়েস</h3>
+            <h3 style="margin: 0 0 10px 0; color: #333;">ভাউচার / ইনভয়েস</h3>
             <p style="margin: 2px 0; font-size: 14px;">আইডি: ${expense._id}</p>
             <p style="margin: 2px 0; font-size: 14px;">তারিখ: ${new Date(expense.date).toLocaleDateString("bn-BD")}</p>
           </div>
@@ -3220,6 +3277,7 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px;">
           <thead>
             <tr style="background-color: #f0fdf4; color: #065f46;">
+              <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">#</th>
               <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: left;">বিবরণ</th>
               <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">পরিমাণ (জন/টি)</th>
               <th style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">দর</th>
@@ -3227,19 +3285,41 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td style="border: 1px solid #e5e7eb; padding: 12px;">
-                <strong>${expense.title}</strong>
-                ${expense.description ? `<p style="margin: 5px 0 0 0; font-size: 12px; color: #666;">${expense.description}</p>` : ""}
-              </td>
-              <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">${expense.numberGiven || "-"}</td>
-              <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">${expense.amountPerPerson ? fmt(expense.amountPerPerson) : "-"}</td>
-              <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right; font-weight: bold;">${fmt(expense.amount)}</td>
-            </tr>
+            ${
+              expense.items && expense.items.length > 0
+                ? expense.items
+                    .map(
+                      (it, i) => `
+                <tr>
+                  <td style="border: 1px solid #e5e7eb; padding: 12px;">${i + 1}</td>
+                  <td style="border: 1px solid #e5e7eb; padding: 12px;">
+                    <strong>${it.itemName}</strong>
+                    ${it.description ? `<p style="margin: 5px 0 0 0; font-size: 12px; color: #666;">${it.description}</p>` : ""}
+                  </td>
+                  <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">${it.qty}</td>
+                  <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">${fmt(it.unitPrice)}</td>
+                  <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right; font-weight: bold;">${fmt(it.qty * it.unitPrice)}</td>
+                </tr>
+              `,
+                    )
+                    .join("")
+                : `
+                <tr>
+                  <td style="border: 1px solid #e5e7eb; padding: 12px;">1</td>
+                  <td style="border: 1px solid #e5e7eb; padding: 12px;">
+                    <strong>${expense.title}</strong>
+                    ${expense.description ? `<p style="margin: 5px 0 0 0; font-size: 12px; color: #666;">${expense.description}</p>` : ""}
+                  </td>
+                  <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: center;">${expense.numberGiven || "-"}</td>
+                  <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right;">${expense.amountPerPerson ? fmt(expense.amountPerPerson) : "-"}</td>
+                  <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right; font-weight: bold;">${fmt(expense.amount)}</td>
+                </tr>
+              `
+            }
           </tbody>
           <tfoot>
             <tr style="background-color: #f9fafb;">
-              <td colspan="3" style="border: 1px solid #e5e7eb; padding: 12px; text-align: right; font-weight: bold;">সর্বমোট</td>
+              <td colspan="4" style="border: 1px solid #e5e7eb; padding: 12px; text-align: right; font-weight: bold;">সর্বমোট</td>
               <td style="border: 1px solid #e5e7eb; padding: 12px; text-align: right; font-weight: bold; font-size: 18px; color: #dc2626;">${fmt(expense.amount)}</td>
             </tr>
           </tfoot>
@@ -3290,19 +3370,21 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
       <div className="bg-white p-2 rounded-xl border border-gray-100 inline-flex gap-1">
         <button
           onClick={() => setView("summary")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === "summary"
-            ? "bg-emerald-50 text-emerald-700 shadow-sm"
-            : "text-gray-500 hover:bg-gray-50"
-            }`}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            view === "summary"
+              ? "bg-emerald-50 text-emerald-700 shadow-sm"
+              : "text-gray-500 hover:bg-gray-50"
+          }`}
         >
           সামারি রিপোর্ট
         </button>
         <button
           onClick={() => setView("expenses")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === "expenses"
-            ? "bg-emerald-50 text-emerald-700 shadow-sm"
-            : "text-gray-500 hover:bg-gray-50"
-            }`}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            view === "expenses"
+              ? "bg-emerald-50 text-emerald-700 shadow-sm"
+              : "text-gray-500 hover:bg-gray-50"
+          }`}
         >
           খরচ ব্যবস্থাপনা
         </button>
@@ -3514,8 +3596,16 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
 
       {view === "expenses" && (
         <div className="space-y-4">
-          <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-            <h3 className="font-bold text-gray-800">খরচের তালিকা</h3>
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-gray-100 shadow-sm">
+            <div>
+              <h3 className="font-bold text-gray-800 text-base sm:text-lg">
+                খরচের তালিকা
+              </h3>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {filteredExpenses.length}টি রেকর্ড পাওয়া গেছে
+              </p>
+            </div>
             <button
               onClick={() => {
                 setEditing(null);
@@ -3525,37 +3615,39 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
                   category: "",
                   date: new Date().toISOString().split("T")[0],
                   description: "",
-                  numberGiven: "",
-                  amountPerPerson: "",
                   location: "",
+                  items: [
+                    { itemName: "", qty: 1, description: "", unitPrice: "" },
+                  ],
                 });
                 setShowModal(true);
               }}
-              className="px-4 py-2 bg-emerald-600 text-white rounded-md text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center gap-2 cursor-pointer"
+              className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl text-sm font-semibold hover:from-emerald-700 hover:to-teal-700 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-emerald-200"
             >
               <PlusCircle size={16} />
+              নতুন খরচ
             </button>
           </div>
 
-          {/* Filters for Expenses */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Filters */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="relative">
               <input
                 type="text"
                 value={expenseSearch}
                 onChange={(e) => setExpenseSearch(e.target.value)}
                 placeholder="খরচ খুঁজুন (টাইটেল/বিবরণ)..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none shadow-sm"
               />
               <Search
-                size={18}
+                size={16}
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
               />
             </div>
             <select
               value={expenseCategory}
               onChange={(e) => setExpenseCategory(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none shadow-sm"
             >
               <option value="">সকল ক্যাটাগরি</option>
               {[...new Set(expenses.map((e) => e.category))].map((cat) => (
@@ -3566,28 +3658,41 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
             </select>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          {/* ─── Desktop Table ─── */}
+          <div className="hidden md:block bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
-                <thead className="text-xs text-gray-400 bg-gray-50 uppercase">
+                <thead className="text-xs text-gray-500 bg-gradient-to-r from-gray-50 to-gray-100/50 uppercase tracking-wide">
                   <tr>
-                    <th className="px-6 py-3">তারিখ</th>
-                    <th className="px-6 py-3">বিবরণ</th>
-                    <th className="px-6 py-3">ক্যাটাগরি</th>
-                    <th className="px-6 py-3 text-right">পরিমাণ</th>
-                    <th className="px-6 py-3 text-right">অ্যাকশন</th>
+                    <th className="px-5 py-3.5">তারিখ</th>
+                    <th className="px-5 py-3.5">বিবরণ</th>
+                    <th className="px-5 py-3.5">ক্যাটাগরি</th>
+                    <th className="px-5 py-3.5 text-right">পরিমাণ</th>
+                    <th className="px-5 py-3.5 text-center">অ্যাকশন</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {filteredExpenses.map((expense) => (
-                    <tr key={expense._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-3 text-gray-500">
-                        {new Date(expense.date).toLocaleDateString("bn-BD")}
+                    <tr
+                      key={expense._id}
+                      className="hover:bg-emerald-50/30 transition-colors"
+                    >
+                      <td className="px-5 py-4 text-gray-500 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center flex-shrink-0">
+                            <Calendar size={13} className="text-gray-400" />
+                          </div>
+                          <span className="text-xs font-medium">
+                            {new Date(expense.date).toLocaleDateString("bn-BD")}
+                          </span>
+                        </div>
                       </td>
-                      <td className="px-6 py-3 font-medium text-gray-800">
-                        {expense.title}
+                      <td className="px-5 py-4">
+                        <p className="font-semibold text-gray-800">
+                          {expense.title}
+                        </p>
                         {expense.description && (
-                          <p className="text-xs text-gray-400 font-normal mt-0.5">
+                          <p className="text-xs text-gray-400 font-normal mt-0.5 line-clamp-1">
                             {expense.description}
                           </p>
                         )}
@@ -3597,29 +3702,47 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
                             {expense.location}
                           </div>
                         )}
-                        {expense.numberGiven && expense.amountPerPerson && (
+                        {expense.items && expense.items.length > 0 ? (
+                          <div className="mt-1.5 flex flex-wrap gap-1">
+                            {expense.items.slice(0, 3).map((it, i) => (
+                              <span
+                                key={i}
+                                className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-50 text-[10px] text-emerald-700 font-medium border border-emerald-100"
+                              >
+                                {it.qty}× {it.itemName}
+                              </span>
+                            ))}
+                            {expense.items.length > 3 && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-[10px] text-gray-500 font-medium">
+                                +{expense.items.length - 3} আরও
+                              </span>
+                            )}
+                          </div>
+                        ) : expense.numberGiven && expense.amountPerPerson ? (
                           <p className="text-[10px] text-gray-500 mt-0.5">
                             {expense.numberGiven} জন ×{" "}
                             {fmt(expense.amountPerPerson)}
                           </p>
-                        )}
+                        ) : null}
                       </td>
-                      <td className="px-6 py-3">
-                        <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">
+                      <td className="px-5 py-4">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs bg-gradient-to-r from-gray-50 to-gray-100 text-gray-600 font-medium border border-gray-200/60">
                           {expense.category}
                         </span>
                       </td>
-                      <td className="px-6 py-3 text-right font-bold text-red-500">
-                        {fmt(expense.amount)}
+                      <td className="px-5 py-4 text-right">
+                        <span className="font-bold text-red-500 text-base">
+                          {fmt(expense.amount)}
+                        </span>
                       </td>
-                      <td className="px-6 py-3">
-                        <div className="flex justify-end gap-2">
+                      <td className="px-5 py-4">
+                        <div className="flex justify-center gap-1">
                           <button
                             onClick={() => handleDownloadInvoice(expense)}
-                            title="ইনভয়েস ডাউনলোড"
-                            className="p-1.5 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors cursor-pointer"
+                            title="ইনভয়েস ডাউনলোড"
+                            className="p-2 hover:bg-blue-50 text-blue-500 rounded-lg transition-all cursor-pointer"
                           >
-                            <Download size={16} />
+                            <Download size={15} />
                           </button>
                           <button
                             onClick={() => {
@@ -3632,39 +3755,201 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
                                   .toISOString()
                                   .split("T")[0],
                                 description: expense.description || "",
-                                numberGiven: expense.numberGiven || "",
-                                amountPerPerson: expense.amountPerPerson || "",
                                 location: expense.location || "",
+                                items:
+                                  expense.items && expense.items.length > 0
+                                    ? expense.items.map((it) => ({
+                                        itemName: it.itemName || "",
+                                        qty: it.qty || 1,
+                                        description: it.description || "",
+                                        unitPrice: it.unitPrice || "",
+                                      }))
+                                    : expense.numberGiven &&
+                                        expense.amountPerPerson
+                                      ? [
+                                          {
+                                            itemName: expense.title,
+                                            qty: expense.numberGiven,
+                                            description: "",
+                                            unitPrice: expense.amountPerPerson,
+                                          },
+                                        ]
+                                      : [
+                                          {
+                                            itemName: "",
+                                            qty: 1,
+                                            description: "",
+                                            unitPrice: expense.amount || "",
+                                          },
+                                        ],
                               });
                               setShowModal(true);
                             }}
-                            className="p-1.5 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-colors cursor-pointer"
+                            className="p-2 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-all cursor-pointer"
                           >
-                            <Pencil size={16} />
+                            <Pencil size={15} />
                           </button>
                           <button
                             onClick={() => handleDeleteExpense(expense._id)}
-                            className="p-1.5 hover:bg-red-50 text-red-500 rounded-lg transition-colors cursor-pointer"
+                            className="p-2 hover:bg-red-50 text-red-400 rounded-lg transition-all cursor-pointer"
                           >
-                            <Trash2 size={16} />
+                            <Trash2 size={15} />
                           </button>
                         </div>
                       </td>
                     </tr>
                   ))}
-                  {expenses.length === 0 && (
+                  {filteredExpenses.length === 0 && (
                     <tr>
                       <td
                         colSpan={5}
-                        className="px-6 py-8 text-center text-gray-400"
+                        className="px-6 py-12 text-center text-gray-400"
                       >
-                        কোনো খরচের রেকর্ড নেই
+                        <div className="flex flex-col items-center gap-2">
+                          <FileText size={32} className="text-gray-300" />
+                          <p>কোনো খরচের রেকর্ড নেই</p>
+                        </div>
                       </td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
+          </div>
+
+          {/* ─── Mobile Cards ─── */}
+          <div className="md:hidden space-y-3">
+            {filteredExpenses.map((expense) => (
+              <div
+                key={expense._id}
+                className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+              >
+                {/* Card Header */}
+                <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-gray-800 text-sm truncate">
+                        {expense.title}
+                      </h4>
+                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-[10px] text-emerald-700 font-medium border border-emerald-100">
+                          <Calendar size={10} />
+                          {new Date(expense.date).toLocaleDateString("bn-BD")}
+                        </span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-[10px] text-gray-600 font-medium">
+                          {expense.category}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="font-bold text-red-500 text-lg leading-tight">
+                        {fmt(expense.amount)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card Body */}
+                <div className="px-4 py-3 space-y-2">
+                  {expense.description && (
+                    <p className="text-xs text-gray-500 line-clamp-2">
+                      {expense.description}
+                    </p>
+                  )}
+                  {expense.location && (
+                    <div className="flex items-center gap-1 text-xs text-gray-400">
+                      <MapPin size={12} />
+                      {expense.location}
+                    </div>
+                  )}
+                  {expense.items && expense.items.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {expense.items.map((it, i) => (
+                        <span
+                          key={i}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50/80 text-[11px] text-emerald-700 font-medium border border-emerald-100/60"
+                        >
+                          <span className="font-bold text-emerald-800">
+                            {it.qty}×
+                          </span>{" "}
+                          {it.itemName}
+                        </span>
+                      ))}
+                    </div>
+                  ) : expense.numberGiven && expense.amountPerPerson ? (
+                    <p className="text-xs text-gray-500">
+                      {expense.numberGiven} জন × {fmt(expense.amountPerPerson)}
+                    </p>
+                  ) : null}
+                </div>
+
+                {/* Card Actions */}
+                <div className="px-4 py-2.5 bg-gray-50/50 border-t border-gray-100 flex items-center justify-end gap-1">
+                  <button
+                    onClick={() => handleDownloadInvoice(expense)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-all cursor-pointer"
+                  >
+                    <Download size={13} /> ইনভয়েস
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditing(expense);
+                      setExpenseForm({
+                        title: expense.title,
+                        amount: expense.amount,
+                        category: expense.category,
+                        date: new Date(expense.date)
+                          .toISOString()
+                          .split("T")[0],
+                        description: expense.description || "",
+                        location: expense.location || "",
+                        items:
+                          expense.items && expense.items.length > 0
+                            ? expense.items.map((it) => ({
+                                itemName: it.itemName || "",
+                                qty: it.qty || 1,
+                                description: it.description || "",
+                                unitPrice: it.unitPrice || "",
+                              }))
+                            : expense.numberGiven && expense.amountPerPerson
+                              ? [
+                                  {
+                                    itemName: expense.title,
+                                    qty: expense.numberGiven,
+                                    description: "",
+                                    unitPrice: expense.amountPerPerson,
+                                  },
+                                ]
+                              : [
+                                  {
+                                    itemName: "",
+                                    qty: 1,
+                                    description: "",
+                                    unitPrice: expense.amount || "",
+                                  },
+                                ],
+                      });
+                      setShowModal(true);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all cursor-pointer"
+                  >
+                    <Pencil size={13} /> এডিট
+                  </button>
+                  <button
+                    onClick={() => handleDeleteExpense(expense._id)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
+                  >
+                    <Trash2 size={13} /> মুছুন
+                  </button>
+                </div>
+              </div>
+            ))}
+            {filteredExpenses.length === 0 && (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
+                <FileText size={32} className="text-gray-300 mx-auto mb-2" />
+                <p className="text-gray-400 text-sm">কোনো খরচের রেকর্ড নেই</p>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -3674,75 +3959,32 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
         <Modal
           title={editing ? "খরচ এডিট করুন" : "নতুন খরচ যোগ করুন"}
           onClose={() => setShowModal(false)}
+          maxWidth="max-w-3xl"
         >
           <form onSubmit={handleExpenseSubmit} className="space-y-4">
-            <FormInput
-              label="খরচের নাম/টাইটেল"
-              required
-              value={expenseForm.title}
-              onChange={(e) =>
-                setExpenseForm({ ...expenseForm, title: e.target.value })
-              }
-              placeholder="যেমন: ইফতার বিতরণ"
-            />
-            <div className="grid grid-cols-3 gap-3 bg-gray-50 p-3 rounded-xl border border-dashed border-gray-200">
-              <div className="col-span-3 text-xs font-semibold text-gray-500 mb-1">
-                বিতরণ বিস্তারিত
-              </div>
+            {/* Title & basic info */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormInput
-                label="মোট সংখ্যা (জন/টি)"
-                type="number"
+                label="খরচের নাম/টাইটেল"
                 required
-                value={expenseForm.numberGiven}
-                onChange={(e) => {
-                  const num = parseFloat(e.target.value) || 0;
-                  const rate = parseFloat(expenseForm.amountPerPerson) || 0;
-                  setExpenseForm((prev) => ({
-                    ...prev,
-                    numberGiven: e.target.value,
-                    amount: num * rate,
-                  }));
-                }}
-                placeholder="যেমন: ৫০"
-              />
-              <FormInput
-                label="জন প্রতি খরচ"
-                type="number"
-                required
-                value={expenseForm.amountPerPerson}
-                onChange={(e) => {
-                  const rate = parseFloat(e.target.value) || 0;
-                  const num = parseFloat(expenseForm.numberGiven) || 0;
-                  setExpenseForm((prev) => ({
-                    ...prev,
-                    amountPerPerson: e.target.value,
-                    amount: num * rate,
-                  }));
-                }}
-                placeholder="0.00"
-              />
-              <FormInput
-                label="স্থান/লোকেশন"
-                required
-                value={expenseForm.location}
+                value={expenseForm.title}
                 onChange={(e) =>
-                  setExpenseForm({ ...expenseForm, location: e.target.value })
+                  setExpenseForm({ ...expenseForm, title: e.target.value })
                 }
-                placeholder="স্থান"
+                placeholder="যেমন: ইফতার বিতরণ"
+              />
+              <FormInput
+                label="ক্যাটাগরি"
+                required
+                value={expenseForm.category}
+                onChange={(e) =>
+                  setExpenseForm({ ...expenseForm, category: e.target.value })
+                }
+                placeholder="যেমন: ইফতার বিতরণ, শীতবস্ত্র, ইত্যাদি"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormInput
-                label="পরিমাণ (টাকা)"
-                type="number"
-                required
-                value={expenseForm.amount}
-                onChange={(e) =>
-                  setExpenseForm({ ...expenseForm, amount: e.target.value })
-                }
-                placeholder="0.00"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormInput
                 label="তারিখ"
                 type="date"
@@ -3752,17 +3994,424 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
                   setExpenseForm({ ...expenseForm, date: e.target.value })
                 }
               />
+              <FormInput
+                label="স্থান/লোকেশন"
+                value={expenseForm.location}
+                onChange={(e) =>
+                  setExpenseForm({ ...expenseForm, location: e.target.value })
+                }
+                placeholder="স্থান"
+              />
             </div>
 
-            <FormInput
-              label="ক্যাটাগরি"
-              required
-              value={expenseForm.category}
-              onChange={(e) =>
-                setExpenseForm({ ...expenseForm, category: e.target.value })
-              }
-              placeholder="যেমন: ইফতার বিতরণ, সবার জন্য কুরবানী, শীতবস্ত্র বিতরণ, ইত্যাদি"
-            />
+            {/* Invoice Items Section */}
+            <div className="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
+              {/* Section Header */}
+              <div className="px-4 py-3 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center">
+                    <FileText size={14} className="text-emerald-600" />
+                  </div>
+                  <div>
+                    <span className="text-sm font-bold text-gray-700">
+                      আইটেম সমূহ
+                    </span>
+                    <span className="text-[10px] text-gray-400 ml-1.5">
+                      ({expenseForm.items.length}টি আইটেম)
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setExpenseForm((prev) => ({
+                      ...prev,
+                      items: [
+                        ...prev.items,
+                        {
+                          itemName: "",
+                          qty: 1,
+                          description: "",
+                          unitPrice: "",
+                        },
+                      ],
+                    }));
+                  }}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-all cursor-pointer shadow-sm"
+                >
+                  <PlusCircle size={14} />
+                  আইটেম যোগ করুন
+                </button>
+              </div>
+
+              {/* ─── Desktop Table (hidden on mobile) ─── */}
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-100/80 text-gray-500 text-[11px] uppercase tracking-wider font-semibold">
+                      <th className="px-3 py-2.5 text-left w-[5%]">#</th>
+                      <th className="px-3 py-2.5 text-left w-[28%]">
+                        আইটেমের নাম
+                      </th>
+                      <th className="px-3 py-2.5 text-center w-[10%]">
+                        পরিমাণ
+                      </th>
+                      <th className="px-3 py-2.5 text-left w-[27%]">বিবরণ</th>
+                      <th className="px-3 py-2.5 text-right w-[15%]">
+                        একক মূল্য (৳)
+                      </th>
+                      <th className="px-3 py-2.5 text-right w-[10%]">মোট</th>
+                      <th className="px-3 py-2.5 text-center w-[5%]"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {expenseForm.items.map((item, idx) => {
+                      const lineTotal =
+                        (parseFloat(item.qty) || 0) *
+                        (parseFloat(item.unitPrice) || 0);
+                      return (
+                        <tr
+                          key={idx}
+                          className="bg-white hover:bg-emerald-50/30 transition-colors group"
+                        >
+                          <td className="px-3 py-2 text-gray-400 font-mono text-xs">
+                            {idx + 1}
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <input
+                              type="text"
+                              required
+                              value={item.itemName}
+                              onChange={(e) => {
+                                const newItems = [...expenseForm.items];
+                                newItems[idx] = {
+                                  ...newItems[idx],
+                                  itemName: e.target.value,
+                                };
+                                const total = newItems.reduce(
+                                  (s, it) =>
+                                    s +
+                                    (parseFloat(it.qty) || 0) *
+                                      (parseFloat(it.unitPrice) || 0),
+                                  0,
+                                );
+                                setExpenseForm((prev) => ({
+                                  ...prev,
+                                  items: newItems,
+                                  amount: total,
+                                }));
+                              }}
+                              placeholder="আইটেমের নাম"
+                              className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 outline-none transition-all"
+                            />
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <input
+                              type="number"
+                              min="1"
+                              required
+                              value={item.qty}
+                              onChange={(e) => {
+                                const newItems = [...expenseForm.items];
+                                newItems[idx] = {
+                                  ...newItems[idx],
+                                  qty: e.target.value,
+                                };
+                                const total = newItems.reduce(
+                                  (s, it) =>
+                                    s +
+                                    (parseFloat(it.qty) || 0) *
+                                      (parseFloat(it.unitPrice) || 0),
+                                  0,
+                                );
+                                setExpenseForm((prev) => ({
+                                  ...prev,
+                                  items: newItems,
+                                  amount: total,
+                                }));
+                              }}
+                              className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-sm text-center focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 outline-none transition-all"
+                            />
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <input
+                              type="text"
+                              value={item.description}
+                              onChange={(e) => {
+                                const newItems = [...expenseForm.items];
+                                newItems[idx] = {
+                                  ...newItems[idx],
+                                  description: e.target.value,
+                                };
+                                setExpenseForm((prev) => ({
+                                  ...prev,
+                                  items: newItems,
+                                }));
+                              }}
+                              placeholder="বিবরণ (অপশনাল)"
+                              className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 outline-none transition-all"
+                            />
+                          </td>
+                          <td className="px-2 py-1.5">
+                            <input
+                              type="number"
+                              min="0"
+                              step="any"
+                              required
+                              value={item.unitPrice}
+                              onChange={(e) => {
+                                const newItems = [...expenseForm.items];
+                                newItems[idx] = {
+                                  ...newItems[idx],
+                                  unitPrice: e.target.value,
+                                };
+                                const total = newItems.reduce(
+                                  (s, it) =>
+                                    s +
+                                    (parseFloat(it.qty) || 0) *
+                                      (parseFloat(it.unitPrice) || 0),
+                                  0,
+                                );
+                                setExpenseForm((prev) => ({
+                                  ...prev,
+                                  items: newItems,
+                                  amount: total,
+                                }));
+                              }}
+                              placeholder="0.00"
+                              className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-sm text-right focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 outline-none transition-all"
+                            />
+                          </td>
+                          <td className="px-3 py-1.5 text-right font-semibold text-gray-700 text-sm whitespace-nowrap">
+                            {fmt(lineTotal)}
+                          </td>
+                          <td className="px-2 py-1.5 text-center">
+                            {expenseForm.items.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newItems = expenseForm.items.filter(
+                                    (_, i) => i !== idx,
+                                  );
+                                  const total = newItems.reduce(
+                                    (s, it) =>
+                                      s +
+                                      (parseFloat(it.qty) || 0) *
+                                        (parseFloat(it.unitPrice) || 0),
+                                    0,
+                                  );
+                                  setExpenseForm((prev) => ({
+                                    ...prev,
+                                    items: newItems,
+                                    amount: total,
+                                  }));
+                                }}
+                                className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* ─── Mobile Cards (hidden on desktop) ─── */}
+              <div className="sm:hidden divide-y divide-gray-100">
+                {expenseForm.items.map((item, idx) => {
+                  const lineTotal =
+                    (parseFloat(item.qty) || 0) *
+                    (parseFloat(item.unitPrice) || 0);
+                  return (
+                    <div key={idx} className="bg-white p-4 space-y-3">
+                      {/* Card top row: index + delete */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-md bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center">
+                            {idx + 1}
+                          </span>
+                          <span className="text-xs font-semibold text-gray-500">
+                            আইটেম #{idx + 1}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-emerald-600">
+                            {fmt(lineTotal)}
+                          </span>
+                          {expenseForm.items.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newItems = expenseForm.items.filter(
+                                  (_, i) => i !== idx,
+                                );
+                                const total = newItems.reduce(
+                                  (s, it) =>
+                                    s +
+                                    (parseFloat(it.qty) || 0) *
+                                      (parseFloat(it.unitPrice) || 0),
+                                  0,
+                                );
+                                setExpenseForm((prev) => ({
+                                  ...prev,
+                                  items: newItems,
+                                  amount: total,
+                                }));
+                              }}
+                              className="p-1.5 text-red-400 hover:text-red-600 bg-red-50 rounded-lg transition-all cursor-pointer"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      {/* Item name */}
+                      <div>
+                        <label className="text-[10px] font-semibold text-gray-400 uppercase mb-1 block">
+                          আইটেমের নাম
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={item.itemName}
+                          onChange={(e) => {
+                            const newItems = [...expenseForm.items];
+                            newItems[idx] = {
+                              ...newItems[idx],
+                              itemName: e.target.value,
+                            };
+                            const total = newItems.reduce(
+                              (s, it) =>
+                                s +
+                                (parseFloat(it.qty) || 0) *
+                                  (parseFloat(it.unitPrice) || 0),
+                              0,
+                            );
+                            setExpenseForm((prev) => ({
+                              ...prev,
+                              items: newItems,
+                              amount: total,
+                            }));
+                          }}
+                          placeholder="আইটেমের নাম লিখুন"
+                          className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 outline-none transition-all"
+                        />
+                      </div>
+                      {/* Qty + Unit Price row */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[10px] font-semibold text-gray-400 uppercase mb-1 block">
+                            পরিমাণ
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            required
+                            value={item.qty}
+                            onChange={(e) => {
+                              const newItems = [...expenseForm.items];
+                              newItems[idx] = {
+                                ...newItems[idx],
+                                qty: e.target.value,
+                              };
+                              const total = newItems.reduce(
+                                (s, it) =>
+                                  s +
+                                  (parseFloat(it.qty) || 0) *
+                                    (parseFloat(it.unitPrice) || 0),
+                                0,
+                              );
+                              setExpenseForm((prev) => ({
+                                ...prev,
+                                items: newItems,
+                                amount: total,
+                              }));
+                            }}
+                            className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-center focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 outline-none transition-all"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-semibold text-gray-400 uppercase mb-1 block">
+                            একক মূল্য (৳)
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="any"
+                            required
+                            value={item.unitPrice}
+                            onChange={(e) => {
+                              const newItems = [...expenseForm.items];
+                              newItems[idx] = {
+                                ...newItems[idx],
+                                unitPrice: e.target.value,
+                              };
+                              const total = newItems.reduce(
+                                (s, it) =>
+                                  s +
+                                  (parseFloat(it.qty) || 0) *
+                                    (parseFloat(it.unitPrice) || 0),
+                                0,
+                              );
+                              setExpenseForm((prev) => ({
+                                ...prev,
+                                items: newItems,
+                                amount: total,
+                              }));
+                            }}
+                            placeholder="0.00"
+                            className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-right focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 outline-none transition-all"
+                          />
+                        </div>
+                      </div>
+                      {/* Description */}
+                      <div>
+                        <label className="text-[10px] font-semibold text-gray-400 uppercase mb-1 block">
+                          বিবরণ
+                        </label>
+                        <input
+                          type="text"
+                          value={item.description}
+                          onChange={(e) => {
+                            const newItems = [...expenseForm.items];
+                            newItems[idx] = {
+                              ...newItems[idx],
+                              description: e.target.value,
+                            };
+                            setExpenseForm((prev) => ({
+                              ...prev,
+                              items: newItems,
+                            }));
+                          }}
+                          placeholder="বিবরণ (অপশনাল)"
+                          className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 outline-none transition-all"
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Grand Total */}
+              <div className="px-4 py-3 sm:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 flex items-center justify-between">
+                <span className="text-white font-bold text-sm">সর্বমোট</span>
+                <span className="text-white font-bold text-lg sm:text-xl tracking-wide">
+                  {fmt(
+                    expenseForm.items.reduce(
+                      (s, it) =>
+                        s +
+                        (parseFloat(it.qty) || 0) *
+                          (parseFloat(it.unitPrice) || 0),
+                      0,
+                    ),
+                  )}
+                </span>
+              </div>
+            </div>
+            {/* Description */}
             <div className="space-y-1.5">
               <label className="block text-xs text-gray-500 font-medium">
                 বিস্তারিত বিবরণ (অপশনাল)
@@ -3775,10 +4424,11 @@ function AccountingTab({ payments, expenses, members, onRefresh, showToast }) {
                     description: e.target.value,
                   })
                 }
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 outline-none transition-all h-24 resize-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 outline-none transition-all h-20 resize-none"
                 placeholder="খরচের বিস্তারিত..."
               />
             </div>
+
             <button
               type="submit"
               disabled={submitting}
@@ -4057,7 +4707,11 @@ function JoinRequestsTab({ requests, onRefresh, showToast }) {
   const statusTabs = [
     { key: "all", label: "সকল", color: "text-gray-700 bg-gray-100" },
     { key: "pending", label: "অপেক্ষমান", color: "text-amber-700 bg-amber-50" },
-    { key: "approved", label: "অনুমোদিত", color: "text-emerald-700 bg-emerald-50" },
+    {
+      key: "approved",
+      label: "অনুমোদিত",
+      color: "text-emerald-700 bg-emerald-50",
+    },
     { key: "rejected", label: "বাতিল", color: "text-red-700 bg-red-50" },
   ];
 
@@ -4084,7 +4738,9 @@ function JoinRequestsTab({ requests, onRefresh, showToast }) {
             <CheckCircle size={16} className="text-emerald-400" />
             <p className="text-emerald-500 text-xs">অনুমোদিত</p>
           </div>
-          <p className="text-2xl font-bold text-emerald-600">{counts.approved}</p>
+          <p className="text-2xl font-bold text-emerald-600">
+            {counts.approved}
+          </p>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-red-100 shadow-sm">
           <div className="flex items-center gap-2 mb-1">
@@ -4098,9 +4754,7 @@ function JoinRequestsTab({ requests, onRefresh, showToast }) {
       {/* Main Table Card */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
-          <h3 className="font-bold text-gray-800">
-            সদস্য হওয়ার আবেদন
-          </h3>
+          <h3 className="font-bold text-gray-800">সদস্য হওয়ার আবেদন</h3>
           <div className="flex items-center gap-2">
             {/* Status Filter Tabs */}
             <div className="bg-gray-50 p-1 rounded-xl inline-flex gap-1">
@@ -4108,10 +4762,11 @@ function JoinRequestsTab({ requests, onRefresh, showToast }) {
                 <button
                   key={tab.key}
                   onClick={() => setStatusFilter(tab.key)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${statusFilter === tab.key
-                    ? `${tab.color} shadow-sm`
-                    : "text-gray-400 hover:text-gray-600"
-                    }`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                    statusFilter === tab.key
+                      ? `${tab.color} shadow-sm`
+                      : "text-gray-400 hover:text-gray-600"
+                  }`}
                 >
                   {tab.label}
                   <span className="ml-1 opacity-70">({counts[tab.key]})</span>
@@ -4172,12 +4827,13 @@ function JoinRequestsTab({ requests, onRefresh, showToast }) {
                   </td>
                   <td className="px-6 py-4">
                     <span
-                      className={`px-2.5 py-1 rounded-full text-xs font-semibold ${req.status === "pending"
-                        ? "bg-amber-100 text-amber-700"
-                        : req.status === "approved"
-                          ? "bg-emerald-100 text-emerald-700"
-                          : "bg-red-100 text-red-700"
-                        }`}
+                      className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                        req.status === "pending"
+                          ? "bg-amber-100 text-amber-700"
+                          : req.status === "approved"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-red-100 text-red-700"
+                      }`}
                     >
                       {req.status === "pending"
                         ? "⏳ অপেক্ষমান"
@@ -4266,12 +4922,13 @@ function JoinRequestsTab({ requests, onRefresh, showToast }) {
             {/* Status Badge */}
             <div className="text-center">
               <span
-                className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-bold ${selectedRequest.status === "pending"
-                  ? "bg-amber-100 text-amber-700"
-                  : selectedRequest.status === "approved"
-                    ? "bg-emerald-100 text-emerald-700"
-                    : "bg-red-100 text-red-700"
-                  }`}
+                className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-bold ${
+                  selectedRequest.status === "pending"
+                    ? "bg-amber-100 text-amber-700"
+                    : selectedRequest.status === "approved"
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-red-100 text-red-700"
+                }`}
               >
                 {selectedRequest.status === "pending" && <Clock size={16} />}
                 {selectedRequest.status === "approved" && (
@@ -4390,8 +5047,8 @@ function JoinRequestsTab({ requests, onRefresh, showToast }) {
                 <Mail size={14} className="mt-0.5 shrink-0" />
                 <p>
                   স্ট্যাটাস পরিবর্তন করলে{" "}
-                  <strong>{selectedRequest.email}</strong>-তে স্বয়ংক্রিয়
-                  ইমেইল পাঠানো হবে।
+                  <strong>{selectedRequest.email}</strong>-তে স্বয়ংক্রিয় ইমেইল
+                  পাঠানো হবে।
                 </p>
               </div>
             )}
@@ -4399,8 +5056,8 @@ function JoinRequestsTab({ requests, onRefresh, showToast }) {
               <div className="flex items-start gap-2 text-xs text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-100">
                 <Mail size={14} className="mt-0.5 shrink-0" />
                 <p>
-                  আবেদনকারী ইমেইল প্রদান করেননি। স্ট্যাটাস পরিবর্তন হলে
-                  ইমেইল পাঠানো সম্ভব হবে না।
+                  আবেদনকারী ইমেইল প্রদান করেননি। স্ট্যাটাস পরিবর্তন হলে ইমেইল
+                  পাঠানো সম্ভব হবে না।
                 </p>
               </div>
             )}
@@ -4409,7 +5066,9 @@ function JoinRequestsTab({ requests, onRefresh, showToast }) {
             <div className="flex flex-wrap gap-2 pt-2">
               {selectedRequest.status !== "approved" && (
                 <button
-                  onClick={() => handleStatusChange(selectedRequest, "approved")}
+                  onClick={() =>
+                    handleStatusChange(selectedRequest, "approved")
+                  }
                   disabled={processing === selectedRequest._id}
                   className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
                 >
@@ -4423,7 +5082,9 @@ function JoinRequestsTab({ requests, onRefresh, showToast }) {
               )}
               {selectedRequest.status !== "rejected" && (
                 <button
-                  onClick={() => handleStatusChange(selectedRequest, "rejected")}
+                  onClick={() =>
+                    handleStatusChange(selectedRequest, "rejected")
+                  }
                   disabled={processing === selectedRequest._id}
                   className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
                 >
@@ -4437,9 +5098,7 @@ function JoinRequestsTab({ requests, onRefresh, showToast }) {
               )}
               {selectedRequest.status !== "pending" && (
                 <button
-                  onClick={() =>
-                    handleStatusChange(selectedRequest, "pending")
-                  }
+                  onClick={() => handleStatusChange(selectedRequest, "pending")}
                   disabled={processing === selectedRequest._id}
                   className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
                 >

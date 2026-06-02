@@ -17,9 +17,10 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="bn">
+    <html lang="bn" suppressHydrationWarning>
       <body
         className={`${inter.variable} ${playfair.variable} antialiased font-sans`}
+        suppressHydrationWarning
       >
         <LanguageProvider>
           <LayoutWrapper>{children}</LayoutWrapper>

@@ -63,7 +63,7 @@ export default function DonatePage() {
               <p className="text-slate-600">{methods.subtitle}</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
               {/* Bkash */}
               <div className="group relative bg-pink-50/50 border border-pink-100 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                 <div className="w-14 h-14 bg-pink-100 rounded-xl flex items-center justify-center mb-6 text-pink-600 group-hover:bg-pink-600 group-hover:text-white transition-colors duration-300">
@@ -105,19 +105,6 @@ export default function DonatePage() {
                   >
                     <Copy className="w-5 h-5" />
                   </button>
-                </div>
-              </div>
-
-              {/* Bank Transfer */}
-              <div className="group relative bg-blue-50/50 border border-blue-100 rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-6 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-                  <Landmark className="w-7 h-7" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">
-                  {methods.bank.title}
-                </h3>
-                <div className="bg-white border border-blue-200 rounded-lg p-4 mt-4 text-sm text-gray-600 leading-relaxed whitespace-pre-line group-hover:border-blue-300 transition-colors">
-                  {methods.bank.details}
                 </div>
               </div>
             </div>

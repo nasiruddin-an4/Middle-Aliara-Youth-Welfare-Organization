@@ -21,7 +21,7 @@ export async function GET(request) {
     const category = searchParams.get("category");
     const featured = searchParams.get("featured");
 
-    if (category) filter.category = category;
+    if (category && category !== "all") filter.category = category;
     if (featured === "true") filter.featured = true;
 
     const [items, total] = await Promise.all([
@@ -39,6 +39,23 @@ export async function GET(request) {
       limit,
       totalPages: Math.ceil(total / limit),
     });
+  } catch (error) {
+    return errorResponse(error.message, 500);
+  }
+}
+
+export async function POST(request) {
+  try {
+    await dbConnect();
+    const data = await request.json();
+
+    if (!data.title || !data.src) {
+      return errorResponse("Title and image source are required", 400);
+    }
+
+    const newGalleryItem = await Gallery.create(data);
+
+    return successResponse(newGalleryItem, null, 201);
   } catch (error) {
     return errorResponse(error.message, 500);
   }

@@ -23,18 +23,41 @@ export default function GalleryPage() {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [imageErrors, setImageErrors] = useState({});
+  const [photos, setPhotos] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch photos from API
+  React.useEffect(() => {
+    const fetchPhotos = async () => {
+      setIsLoading(true);
+      try {
+        const url = new URL("/api/v1/gallery", window.location.origin);
+        if (activeCategory !== "all") {
+          url.searchParams.append("category", activeCategory);
+        }
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.success) {
+          setPhotos(data.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch gallery photos", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchPhotos();
+  }, [activeCategory]);
 
   const filteredPhotos = useMemo(() => {
     return photos.filter((photo) => {
-      const matchCategory =
-        activeCategory === "all" || photo.category === activeCategory;
       const matchSearch =
         !searchTerm ||
         photo.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        photo.description.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchCategory && matchSearch;
+        photo.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchSearch;
     });
-  }, [activeCategory, searchTerm]);
+  }, [photos, searchTerm]);
 
   const handleImageError = (id) => {
     setImageErrors((prev) => ({ ...prev, [id]: true }));
@@ -53,7 +76,7 @@ export default function GalleryPage() {
   const navigatePhoto = (direction) => {
     if (!selectedPhoto) return;
     const currentIndex = filteredPhotos.findIndex(
-      (p) => p.id === selectedPhoto.id,
+      (p) => p._id === selectedPhoto._id,
     );
     let newIndex;
     if (direction === "next") {
@@ -168,7 +191,7 @@ export default function GalleryPage() {
           <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
             {filteredPhotos.map((photo, index) => (
               <div
-                key={photo.id}
+                key={photo._id || photo.id}
                 className="break-inside-avoid group cursor-pointer"
                 onClick={() => openLightbox(photo)}
               >
@@ -183,7 +206,7 @@ export default function GalleryPage() {
                           : "aspect-[3/4]"
                     }`}
                   >
-                    {imageErrors[photo.id] ? (
+                    {imageErrors[photo._id || photo.id] ? (
                       <div className="w-full h-full bg-gradient-to-br from-emerald-50 to-teal-50 flex flex-col items-center justify-center">
                         <ImageIcon
                           size={48}
@@ -198,7 +221,7 @@ export default function GalleryPage() {
                         src={photo.src}
                         alt={photo.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                        onError={() => handleImageError(photo.id)}
+                        onError={() => handleImageError(photo._id || photo.id)}
                       />
                     )}
 
@@ -316,7 +339,7 @@ export default function GalleryPage() {
           >
             {/* Image */}
             <div className="relative w-full flex items-center justify-center">
-              {imageErrors[selectedPhoto.id] ? (
+              {imageErrors[selectedPhoto._id || selectedPhoto.id] ? (
                 <div className="w-full h-[60vh] bg-gray-900 rounded-2xl flex flex-col items-center justify-center">
                   <ImageIcon size={64} className="text-gray-600 mb-3" />
                   <p className="text-gray-500">ছবি লোড হচ্ছে না</p>
@@ -326,7 +349,7 @@ export default function GalleryPage() {
                   src={selectedPhoto.src}
                   alt={selectedPhoto.title}
                   className="max-w-full max-h-[75vh] object-contain rounded-xl shadow-2xl"
-                  onError={() => handleImageError(selectedPhoto.id)}
+                  onError={() => handleImageError(selectedPhoto._id || selectedPhoto.id)}
                 />
               )}
             </div>
@@ -355,7 +378,7 @@ export default function GalleryPage() {
               <div className="flex items-center gap-2">
                 {/* Photo counter */}
                 <span className="text-white/40 text-xs font-medium">
-                  {filteredPhotos.findIndex((p) => p.id === selectedPhoto.id) +
+                  {filteredPhotos.findIndex((p) => (p._id || p.id) === (selectedPhoto._id || selectedPhoto.id)) +
                     1}
                   /{filteredPhotos.length}
                 </span>

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { signToken, verifyToken } from "@/lib/auth";
 
 const ACCESS_PASSWORD =
-  process.env.ACCOUNT_ACCESS_PASSWORD || "align_accounts_secret_2026";
+  process.env.ACCOUNT_ACCESS_PASSWORD || "aliara@2026!";
 
 export async function GET(request) {
   const token = request.cookies.get("account_access_token")?.value;

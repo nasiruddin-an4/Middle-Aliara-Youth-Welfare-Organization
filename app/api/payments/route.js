@@ -21,7 +21,23 @@ export async function GET(request) {
     const payments = await Payment.find(filter)
       .sort({ year: -1, month: -1 })
       .lean();
-    return NextResponse.json({ success: true, data: payments });
+
+    const memberIds = [...new Set(payments.map((p) => p.memberId))];
+    const members = await Member.find({ memberId: { $in: memberIds } })
+      .select("memberId name")
+      .lean();
+
+    const memberMap = {};
+    members.forEach((m) => {
+      memberMap[m.memberId] = m.name;
+    });
+
+    const enrichedPayments = payments.map((p) => ({
+      ...p,
+      memberName: memberMap[p.memberId] || "Unknown",
+    }));
+
+    return NextResponse.json({ success: true, data: enrichedPayments });
   } catch (error) {
     return NextResponse.json(
       { error: "পেমেন্ট ডাটা লোড করা যায়নি" },

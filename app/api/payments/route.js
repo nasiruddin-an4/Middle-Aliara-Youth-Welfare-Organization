@@ -24,17 +24,21 @@ export async function GET(request) {
 
     const memberIds = [...new Set(payments.map((p) => p.memberId))];
     const members = await Member.find({ memberId: { $in: memberIds } })
-      .select("memberId name")
+      .select("memberId name image")
       .lean();
 
     const memberMap = {};
     members.forEach((m) => {
-      memberMap[m.memberId] = m.name;
+      memberMap[m.memberId] = {
+        name: m.name,
+        image: m.image || "",
+      };
     });
 
     const enrichedPayments = payments.map((p) => ({
       ...p,
-      memberName: memberMap[p.memberId] || "Unknown",
+      memberName: memberMap[p.memberId]?.name || "Unknown",
+      memberImage: memberMap[p.memberId]?.image || "",
     }));
 
     return NextResponse.json({ success: true, data: enrichedPayments });

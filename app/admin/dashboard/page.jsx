@@ -42,6 +42,7 @@ import {
   XCircle as XCircleIcon,
   TrendingDown,
   Wallet,
+  Bell,
 } from "lucide-react";
 
 import jsPDF from "jspdf";
@@ -57,6 +58,7 @@ const navItems = [
   { id: "activities", label: "চলমান কার্যক্রমসমূহ", icon: Activity },
   { id: "messages", label: "যোগাযোগ বার্তা", icon: MessageSquare },
   { id: "join_requests", label: "সদস্য আবেদন", icon: UserPlus },
+  { id: "notifications", label: "পুশ নোটিফিকেশন", icon: Bell },
 ];
 
 // ─── SweetAlert2 Toast helper ───
@@ -596,6 +598,9 @@ export default function AdminDashboard() {
               onRefresh={fetchAll}
               showToast={showToast}
             />
+          )}
+          {activeTab === "notifications" && (
+            <NotificationsTab showToast={showToast} />
           )}
         </main>
       </div>
@@ -5444,6 +5449,98 @@ function JoinRequestsTab({ requests, onRefresh, showToast }) {
           </div>
         </Modal>
       )}
+    </div>
+  );
+}
+
+// ════════════════════════════
+// ═══ NOTIFICATIONS TAB ══════
+// ════════════════════════════
+function NotificationsTab({ showToast }) {
+  const [title, setTitle] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSend = async (e) => {
+    e.preventDefault();
+    if (!title || !message) {
+      showToast("Title and message are required", "error");
+      return;
+    }
+
+    const confirmed = await confirmAction({
+      title: "নোটিফিকেশন পাঠাতে চান?",
+      text: "এই মেসেজটি সমস্ত ব্যবহারকারীদের কাছে পাঠানো হবে।",
+      confirmButtonText: "হ্যাঁ, পাঠান",
+    });
+
+    if (!confirmed) return;
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/notifications/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, message }),
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        showToast(data.message || "নোটিফিকেশন পাঠানো হয়েছে", "success");
+        setTitle("");
+        setMessage("");
+      } else {
+        showToast(data.error || "নোটিফিকেশন পাঠাতে সমস্যা হয়েছে", "error");
+      }
+    } catch (error) {
+      showToast("সার্ভার এরর", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-gray-800">পুশ নোটিফিকেশন</h2>
+          <p className="text-sm text-gray-500 mt-1">সব ইউজারকে নোটিফিকেশন পাঠান</p>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm max-w-2xl">
+        <form onSubmit={handleSend} className="space-y-5">
+          <FormInput
+            label="Title (শিরোনাম)"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="নোটিফিকেশনের শিরোনাম লিখুন..."
+            required
+          />
+          
+          <div>
+            <label className="block text-xs text-gray-500 font-medium mb-1.5">
+              Message (মেসেজ) <span className="text-red-400 ml-0.5">*</span>
+            </label>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="বিস্তারিত মেসেজ লিখুন..."
+              required
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 outline-none transition-all h-32 resize-none"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+          >
+            {loading ? <Loader2 size={18} className="animate-spin" /> : <Bell size={18} />}
+            {loading ? "পাঠানো হচ্ছে..." : "সেন্ড নোটিফিকেশন"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

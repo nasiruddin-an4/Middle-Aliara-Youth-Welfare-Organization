@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import MemberRequest from "@/lib/models/MemberRequest";
+import { isAuthenticated, hasPermission, ROLES } from "@/lib/auth";
 
 export async function POST(request) {
   try {
@@ -37,6 +38,15 @@ export async function POST(request) {
 }
 
 export async function GET(request) {
+  const user = isAuthenticated(request);
+  if (!user) {
+    return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!hasPermission(user, ROLES.MEMBER_ADMIN)) {
+    return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
+  }
+
   try {
     await dbConnect();
     const requests = await MemberRequest.find({}).sort({ createdAt: -1 });
@@ -52,3 +62,4 @@ export async function GET(request) {
     );
   }
 }
+
